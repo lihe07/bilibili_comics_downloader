@@ -165,7 +165,7 @@ async fn main() {
                 let from = matches.value_of("from").unwrap_or("0").parse::<f64>().unwrap();
                 let to = matches.value_of("to").unwrap_or("-1").parse::<f64>().unwrap();
                 let split = matches.is_present("split_pdf");
-                lib::export(id_or_link.to_owned(), from, to, split, matches.value_of("export_dir"));
+                lib::export(id_or_link.to_owned(), from, to, split, matches.value_of("output"));
             } else {
                 log.error("缺少漫画的ID或者链接");
                 log.info("使用bcdown export <ID_OR_LINK> 来导出漫画");

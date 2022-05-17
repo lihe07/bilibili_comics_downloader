@@ -453,7 +453,7 @@ pub fn export(id_or_link: String, from: f64, to: f64, split_episodes: bool, expo
         let mut ep_list = comic_cache.episodes.values().collect::<Vec<_>>();
         ep_list.sort_by(|a, b| a.ord.partial_cmp(&b.ord).unwrap());
         ep_list.retain(|ep| {
-            if ep.not_downloaded().len() == 0 {
+            if ep.not_downloaded().len() > 0 {
                 return false;
             }
             if ep.ord < from {
@@ -464,6 +464,10 @@ pub fn export(id_or_link: String, from: f64, to: f64, split_episodes: bool, expo
             }
             true
         });
+        if ep_list.len() == 0 {
+            log.error("没有可以导出的章节");
+            return;
+        }
         let comic_dir = Path::new(&config.cache_dir).join(format!("{}", id));
 
         if split_episodes {
