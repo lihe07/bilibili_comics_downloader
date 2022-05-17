@@ -185,7 +185,7 @@ pub async fn list() {
         log.info(format!("{} - {}：", comic.id, comic.title));
         let mut episodes = comic.episodes.values().collect::<Vec<_>>();
         episodes.sort_by(|a, b| a.ord.partial_cmp(&b.ord).unwrap());
-        let episodes = comic.episodes.values().map(|e|
+        let episodes = episodes.iter().map(|e|
             if e.not_downloaded().len() == 0 {
                 format!("    {} - {} - {}", e.ord, e.title, "已下载".green())
             } else {

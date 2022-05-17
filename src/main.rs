@@ -92,7 +92,6 @@ async fn main() {
                 )
                 .arg(
                     Arg::new("split_pdf")
-                        .value_name("SPLIT_PDF")
                         .help("是否按照每一话输出一个PDF文件")
                         .short('s')
                         .long("split-pdf")
