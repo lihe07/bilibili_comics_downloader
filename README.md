@@ -95,6 +95,8 @@
 
 > **备注**：鉴于依赖项`printpdf`的特性，只有在添加`--release`标签后，工具才会对PDF执行压缩
 
+这个项目已经发布到`crates.io`上了，因此可以通过`cargo install bcdown`来安装
+
 如果只是普通用户，可以下载编译好的可执行文件：[Releases](https://github.com/lihe07/bilibili_comics_downloader/releases)
 
 ## 联系方式

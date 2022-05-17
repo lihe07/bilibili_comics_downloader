@@ -5,6 +5,7 @@ edition = "2021"
 authors = ["lihe07"]
 description = "Bilibili漫画下载器，written in Rust"
 repository = "https://github.com/lihe07/bilibili_comics_downloader"
+license = "MIT"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
