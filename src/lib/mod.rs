@@ -303,6 +303,9 @@ pub async fn fetch(id_or_link: String, from: f64, to: f64) {
     let comic_info = network::get_comic_info(&config, id).await;
     let cache = cache::Cache::load(&config);
     let cache_root = Path::new(&config.cache_dir);
+    if !cache_root.join(format!("{}", id)).is_dir() {
+        std::fs::create_dir_all(cache_root.join(format!("{}", id))).unwrap();
+    }
     let cover_path = &cache_root.join(format!("{}", id)).join("cover.jpg");
 
     let comic_cache = if let Some(comic) = cache.get_comic(id) {
