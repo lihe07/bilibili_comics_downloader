@@ -157,6 +157,7 @@ pub struct ComicInfo {
     pub author_name: Vec<String>,
     pub styles: Vec<String>,
     pub ep_list: Vec<EpisodeInfo>,
+    pub vertical_cover: String
 }
 
 pub async fn get_comic_info(config: &Config, comic_id: u32) -> ComicInfo {

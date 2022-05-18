@@ -79,14 +79,23 @@ async fn main() {
                         .help("漫画的ID或者链接")
                 )
                 .arg(
+                    Arg::new("format")
+                        .value_name("FORMAT")
+                        .short('f')
+                        .long("format")
+                        .help("导出的格式，epub或pdf")
+                )
+                .arg(
                     Arg::new("from")
                         .value_name("FROM")
+                        .long("from")
                         .help("从第几话开始下载，默认为0")
                         .required(false)
                 )
                 .arg(
                     Arg::new("to")
                         .value_name("TO")
+                        .long("to")
                         .help("下载到第几话，默认为最后一话")
                         .required(false)
                 )
@@ -161,13 +170,26 @@ async fn main() {
         }
         Some(("export", matches)) => {
             if let Some(id_or_link) = matches.value_of("id_or_link") {
-                let from = matches.value_of("from").unwrap_or("0").parse::<f64>().unwrap();
+                if !matches.is_present("format") {
+                    log.error("缺少输出格式");
+                    log.info("使用bcdown export <ID_OR_LINK> -f <FORMAT> 来输出漫画");
+                    log.info("有效的输出格式可以是：");
+                    println!("    1. pdf");
+                    println!("    2. epub");
+                    return;
+                }
+                let from = matches.value_of("from").unwrap_or("-1").parse::<f64>().unwrap();
                 let to = matches.value_of("to").unwrap_or("-1").parse::<f64>().unwrap();
                 let split = matches.is_present("split_pdf");
-                lib::export(id_or_link.to_owned(), from, to, split, matches.value_of("output"));
+                let format = matches.value_of("format").unwrap();
+                if format != "epub" && format != "epub" {
+                    log.error("目前只支持导出epub和pdf格式");
+                    return;
+                }
+                lib::export(id_or_link.to_owned(), from, to, split, matches.value_of("output"), format.to_owned());
             } else {
                 log.error("缺少漫画的ID或者链接");
-                log.info("使用bcdown export <ID_OR_LINK> 来导出漫画");
+                log.info("使用bcdown export <ID_OR_LINK> -f <FORMAT> 来导出漫画");
                 log.info("有效的ID或者链接可以是：");
                 println!("    1. https://manga.bilibili.com/detail/mc29911");
                 println!("    2. mc29911");

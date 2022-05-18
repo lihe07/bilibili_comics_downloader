@@ -1,6 +1,6 @@
 [package]
 name = "bcdown"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 authors = ["lihe07"]
 description = "Bilibili漫画下载器，written in Rust"
@@ -17,6 +17,7 @@ colorful = "0.2.1"
 crossbeam = "0.8.1"
 ctrlc = "3.2.2"
 directories = "4.0.1"
+epub-builder = "0.5.0"
 indicatif = "0.16.2"
 md5 = "0.7.0"
 paris = "1.5.13"
