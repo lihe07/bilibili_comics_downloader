@@ -101,6 +101,20 @@
 
 如果只是普通用户，可以下载编译好的可执行文件：[Releases](https://github.com/lihe07/bilibili_comics_downloader/releases)
 
+## Kindle使用指南
+
+由于kindle阅读器暂时不支持epub格式的电子书，而pdf格式又过于庞大，不便于传输，这里有几种常见解决方案：
+
+1. 使用 `bcdown export XXXX -s -f pdf` 分话导出较小的pdf文件（编码较慢）
+
+   > ​	在存储空间较小的设备上需要较多次的传输
+
+2. 使用 `bcdown export XXXX -f epub` 导出一个大的epub文件（比pdf快），之后使用 `ebook-convert` 等工具转换成 azw3 格式
+
+   > ​	实测azw3拥有更好的压缩率，pdf(1.5G) > epub(300M) > azw3(150M)
+   >
+   > ​	由于不同的导出工具的区别，一些小功能可能会失效（如封面图片，标题等）图片和目录的显示已经经过测试，不会出现较大的问题
+
 ## 联系方式
 
 我的QQ：*3525904273*

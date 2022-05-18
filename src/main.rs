@@ -199,7 +199,7 @@ async fn main() {
         Some((_, _)) => {}
         None => {
             log.error("需要指定一个子命令!");
-            log.info("例如：\n\tbcdown login -q\t使用二维码登录\n\tbcdown info\t查看工具信息\n\tbcdown clear\t清理下载缓存");
+            log.info("例如：\n\tbcdown login -q\t使用二维码登录\n\tbcdown info\t查看工具信息\n\tbcdown clear\t清理下载缓存\n\tbcdown list\t查看本地漫画列表\n\tbcdown search mc29911\t搜索漫画\n\tbcdown fetch mc29911\t下载漫画\n\tbcdown export mc29911 -f epub\t导出本地漫画");
         }
     }
 }
