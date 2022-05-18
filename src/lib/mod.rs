@@ -277,7 +277,7 @@ async fn run_task(
     };
 
     let not_downloaded = ep_cache.not_downloaded();
-    for (i, url) in network::get_image_tokens(&config, not_downloaded.clone()).await.unwrap().iter().enumerate() {
+    for (i, url) in network::get_image_tokens(&config, not_downloaded.clone()).await?.iter().enumerate() { // 出错的概率很低，但不是没有
         if halt_receiver.try_recv().is_ok() {
             return None;
         }

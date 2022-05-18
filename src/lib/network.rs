@@ -157,7 +157,7 @@ pub struct ComicInfo {
     pub author_name: Vec<String>,
     pub styles: Vec<String>,
     pub ep_list: Vec<EpisodeInfo>,
-    pub vertical_cover: String
+    pub vertical_cover: String,
 }
 
 pub async fn get_comic_info(config: &Config, comic_id: u32) -> ComicInfo {
@@ -241,9 +241,9 @@ pub async fn get_image_tokens(config: &Config, paths: Vec<String>) -> Option<Vec
 }
 
 pub async fn down_to<T: AsRef<Path>>(config: &Config, url: String, path: T) -> Option<usize> {
-    if path.as_ref().is_file() {
-        panic!("重复下载文件: {}", path.as_ref().display());
-    }
+    // if path.as_ref().is_file() {
+    //     panic!("重复下载文件: {}", path.as_ref().display());
+    // }
     let client = config.get_client();
     let resp = client.get(url).send().await.ok()?; // 这里出错是在计划内的，不会强制退出
 

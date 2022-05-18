@@ -182,7 +182,7 @@ async fn main() {
                 let to = matches.value_of("to").unwrap_or("-1").parse::<f64>().unwrap();
                 let split = matches.is_present("split_pdf");
                 let format = matches.value_of("format").unwrap();
-                if format != "epub" && format != "epub" {
+                if format != "epub" && format != "pdf" {
                     log.error("目前只支持导出epub和pdf格式");
                     return;
                 }
