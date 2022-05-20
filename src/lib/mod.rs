@@ -38,25 +38,25 @@ fn delete_all_files(path: String) {
 }
 
 fn bytes_with_unit(bytes: u64) -> String {
-    let mut bytes = bytes;
+    let mut bytes = bytes as f64;
     let mut unit = "B";
-    if bytes > 1024 {
-        bytes /= 1024;
+    if bytes > 1024. {
+        bytes /= 1024.;
         unit = "KB";
     }
-    if bytes > 1024 {
-        bytes /= 1024;
+    if bytes > 1024. {
+        bytes /= 1024.;
         unit = "MB";
     }
-    if bytes > 1024 {
-        bytes /= 1024;
+    if bytes > 1024. {
+        bytes /= 1024.;
         unit = "GB";
     }
-    if bytes > 1024 {
-        bytes /= 1024;
+    if bytes > 1024. {
+        bytes /= 1024.;
         unit = "TB";
     }
-    format!("{} {}", bytes, unit)
+    format!("{} {:.4}", bytes, unit)
 }
 
 fn get_dir_size(path: &str) -> u64 {
@@ -276,14 +276,16 @@ async fn run_task(
         ep_cache
     };
 
-    let not_downloaded = ep_cache.not_downloaded();
+    let mut not_downloaded = ep_cache.not_downloaded();
+
     for (i, url) in network::get_image_tokens(&config, not_downloaded.clone()).await?.iter().enumerate() { // 出错的概率很低，但不是没有
         if halt_receiver.try_recv().is_ok() {
-            return None;
+            return Some(());
         }
         let file_name = not_downloaded.get(i).unwrap().split("/").last().unwrap();
         let path = ep_root.join(file_name);
         if let Some(size) = down_to(&config, url.to_owned(), &path).await {
+            not_downloaded.remove(i);
             statics_sender.send(Msg::Size(size)).await.unwrap();
         }
     }
@@ -407,7 +409,8 @@ pub async fn fetch(id_or_link: String, from: f64, to: f64) {
                     ).await {
                         break;
                     }
-                    tokio::time::sleep(std::time::Duration::from_secs(3)).await;
+                    bar.println(format!("任务 {} 失败! 3s后重试!", ep.id));
+                    tokio::time::sleep(Duration::from_secs(3)).await;
                 }
             })
         )
