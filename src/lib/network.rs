@@ -248,7 +248,7 @@ pub async fn down_to<T: AsRef<Path>>(config: &Config, url: String, path: T) -> O
     let resp = client.get(url).send().await.ok()?; // 这里出错是在计划内的，不会强制退出
 
     let header_md5 = resp.headers().get("content-md5").cloned();
-    let bytes = resp.bytes().await.unwrap();
+    let bytes = resp.bytes().await.ok()?; // 出现问题也很罕见，有时候会EOF
 
     if let Some(md5) = header_md5 {
         let md5 = md5.to_str().unwrap().parse::<String>().unwrap();
