@@ -567,6 +567,7 @@ pub fn export(id_or_link: String, from: f64, to: f64, split_episodes: bool, expo
             } else {
                 None
             };
+            dbg!(cover.is_some());
             let content_template = r#"<?xml version="1.0" encoding="UTF-8"?>
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops">
 <body>

@@ -247,18 +247,21 @@ pub async fn down_to<T: AsRef<Path>>(config: &Config, url: String, path: T) -> O
     let client = config.get_client();
     let resp = client.get(url).send().await.ok()?; // 这里出错是在计划内的，不会强制退出
 
-    let md5 = resp.headers().get("content-md5")?; // 极罕见的情况，服务器没有返回md5，这时候就重新下载即可
-    let md5 = md5.to_str().unwrap().parse::<String>().unwrap();
-
+    let header_md5 = resp.headers().get("content-md5").cloned();
     let bytes = resp.bytes().await.unwrap();
 
-    // 这里的md5是base64编码的 编码的是md5的二进制数组
-    let hash = md5::compute(&bytes);
-    let hash = base64::encode(hash.as_bytes());
-    if hash != md5 {
-        // 不匹配的md5，说明文件被修改过，重新下载
-        // dbg!(hash, md5);
-        return None;
+    if let Some(md5) = header_md5 {
+        let md5 = md5.to_str().unwrap().parse::<String>().unwrap();
+
+
+        // 这里的md5是base64编码的 编码的是md5的二进制数组
+        let hash = md5::compute(&bytes);
+        let hash = base64::encode(hash.as_bytes());
+        if hash != md5 {
+            // 不匹配的md5，说明文件被修改过，重新下载
+            // dbg!(hash, md5);
+            return None;
+        }
     }
     let mut file = File::create(&path).await.unwrap();
     file.write_all(&bytes).await.unwrap();
