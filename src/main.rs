@@ -83,7 +83,7 @@ async fn main() {
                         .value_name("FORMAT")
                         .short('f')
                         .long("format")
-                        .help("导出的格式，epub或pdf")
+                        .help("导出的格式，epub | pdf | zip")
                 )
                 .arg(
                     Arg::new("from")
@@ -182,8 +182,8 @@ async fn main() {
                 let to = matches.value_of("to").unwrap_or("-1").parse::<f64>().unwrap();
                 let split = matches.is_present("split_pdf");
                 let format = matches.value_of("format").unwrap();
-                if format != "epub" && format != "pdf" {
-                    log.error("目前只支持导出epub和pdf格式");
+                if format != "epub" && format != "pdf" && format != "zip"{
+                    log.error("目前只支持导出 epub | pdf | zip 格式");
                     return;
                 }
                 lib::export(id_or_link.to_owned(), from, to, split, matches.value_of("output"), format.to_owned());

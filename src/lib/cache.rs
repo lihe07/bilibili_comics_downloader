@@ -37,7 +37,7 @@ impl EpisodeCache {
             .ok()?
             .map(|entry| entry.unwrap().path())
             .filter(|path| path.is_file())
-            .filter(|path| path.extension() == Some("jpg".as_ref()))
+            .filter(|path| path.extension() == Some("jpg".as_ref()) || path.extension() == Some("png".as_ref()))
             .map(|path| path.file_name().unwrap().to_str().unwrap().to_string())
             .collect::<Vec<_>>();
         Some(EpisodeCache {
