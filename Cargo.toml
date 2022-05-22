@@ -1,9 +1,9 @@
 [package]
 name = "bcdown"
-version = "0.1.5"
+version = "0.1.6"
 edition = "2021"
 authors = ["lihe07"]
-description = "Bilibili漫画下载器，written in Rust"
+description = "Bilibili漫画下载器，written in Rust，支持epub pdf zip格式"
 repository = "https://github.com/lihe07/bilibili_comics_downloader"
 license = "MIT"
 

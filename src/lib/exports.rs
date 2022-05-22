@@ -30,7 +30,7 @@ pub fn export_pdf(
                 ep_dir.join(file_name)
             }).collect::<Vec<_>>();
 
-            let doc = pdf::from_images(paths, ep.title.clone(), format!("{} - {}", ep.ord, ep.title.clone()), config.dpi.clone());
+            let doc = pdf::from_images(paths, ep.title.clone(), ep.title.clone(), config.dpi.clone());
             let path = ep_dir.join(
                 if let Some(dpi) = config.dpi {
                     format!("{}-dpi.pdf", dpi)
@@ -61,9 +61,9 @@ pub fn export_pdf(
                 ep_dir.join(file_name)
             }).collect::<Vec<_>>();
             if i == 0 {
-                pdf = Some(pdf::from_images(paths, comic_cache.title.clone(), format!("{} - {}", ep.ord, ep.title.clone()), config.dpi.clone()));
+                pdf = Some(pdf::from_images(paths, comic_cache.title.clone(), ep.title.clone(), config.dpi.clone()));
             } else {
-                pdf = Some(pdf::append(pdf.unwrap(), paths, format!("{} - {}", ep.ord, ep.title.clone()), config.dpi.clone()));
+                pdf = Some(pdf::append(pdf.unwrap(), paths, ep.title.clone(), config.dpi.clone()));
             }
         }
         log.done();
@@ -115,7 +115,7 @@ pub fn export_epub(
             if let Some(cover) = cover.clone() {
                 builder.add_cover_image("images/cover.jpg", cover.as_slice(), "image/jpeg").unwrap();
             }
-            builder.metadata("title", format!("{} {} - {}", &comic_cache.title, ep.ord, &ep.title)).unwrap();
+            builder.metadata("title", format!("{} - {}", &comic_cache.title, &ep.title)).unwrap();
             builder.stylesheet(style.as_bytes()).unwrap();
             for (i, link) in ep.paths.iter().enumerate() {
                 let file_name = link.split('/').last().unwrap();
@@ -170,7 +170,7 @@ pub fn export_epub(
                 if i == 0 {
                     builder.add_content(
                         EpubContent::new(format!("{}.xhtml", ep.id), content_template.replace("{src}", &format!("./images/{}/{}", ep.id, file_name)).replace("{alt}", link).as_bytes())
-                            .title(format!("{} - {}", ep.ord, ep.title))
+                            .title(&ep.title)
                     ).unwrap();
                 } else {
                     builder.add_content(

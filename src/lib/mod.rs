@@ -377,8 +377,11 @@ pub async fn fetch(id_or_link: String, from: f64, to: f64) {
 
     let (statics_sender, mut statics_receiver) = tokio::sync::mpsc::channel(10);
     let (halt_sender, halt_receiver) = crossbeam::channel::unbounded();
+    let times = ep_list.len();
     ctrlc::set_handler(move || {
-        halt_sender.send(()).unwrap();
+        for _ in 0..times {
+            halt_sender.send(()).unwrap();
+        }
     }).expect("无法设置 ctrl+c 处理函数");
 
     let mut tasks = Vec::new();
@@ -511,7 +514,7 @@ pub fn export(id_or_link: String, from: f64, to: f64, split_episodes: bool, expo
                 &config,
                 bar,
                 out_dir,
-                comic_cache
+                comic_cache,
             );
         } else if format == "epub" {
             exports::export_epub(
@@ -520,7 +523,7 @@ pub fn export(id_or_link: String, from: f64, to: f64, split_episodes: bool, expo
                 ep_list,
                 bar,
                 out_dir,
-                comic_cache
+                comic_cache,
             );
         } else if format == "zip" {
             exports::export_zip(
@@ -529,7 +532,7 @@ pub fn export(id_or_link: String, from: f64, to: f64, split_episodes: bool, expo
                 ep_list,
                 bar,
                 out_dir,
-                comic_cache
+                comic_cache,
             );
         }
         log.success(format!("漫画导出至: {}", out));
