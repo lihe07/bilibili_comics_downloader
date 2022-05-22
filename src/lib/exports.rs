@@ -117,7 +117,7 @@ pub fn export_epub(
             }
             builder.metadata("title", format!("{} {} - {}", &comic_cache.title, ep.ord, &ep.title)).unwrap();
             builder.stylesheet(style.as_bytes()).unwrap();
-            for link in &ep.paths {
+            for (i, link) in ep.paths.iter().enumerate() {
                 let file_name = link.split('/').last().unwrap();
                 let file_path = ep_dir.join(file_name);
                 let file = File::open(&file_path).unwrap();
@@ -131,7 +131,7 @@ pub fn export_epub(
                 };
                 builder.add_resource(format!("images/{}/{}", ep.id, file_name), buf.as_slice(), mime).unwrap();
                 builder.add_content(
-                    EpubContent::new(format!("{}/{}", ep.id, file_name), content_template.replace("{src}", &format!("./images/{}/{}", ep.id, file_name)).replace("{alt}", file_name).as_bytes())
+                    EpubContent::new(format!("{}-{}.xhtml", ep.id, i), content_template.replace("{src}", &format!("./images/{}/{}", ep.id, file_name)).replace("{alt}", file_name).as_bytes())
                 ).unwrap();
             }
             let file = File::create(ep_dir.join("epub.epub")).unwrap();
