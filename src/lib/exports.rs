@@ -200,7 +200,7 @@ pub fn export_zip(
     comic_cache: &ComicCache,
 ) {
     let options = FileOptions::default()
-        .compression_method(CompressionMethod::Zstd)
+        .compression_method(CompressionMethod::Stored)
         .compression_level(Some(10));
     if split_episodes {
         for ep in ep_list {
