@@ -1,6 +1,6 @@
 [package]
 name = "bcdown"
-version = "0.1.7"
+version = "0.2.0"
 edition = "2021"
 authors = ["lihe07"]
 description = "Bilibili漫画下载器，written in Rust，支持epub pdf zip格式"
@@ -12,18 +12,20 @@ license = "MIT"
 [dependencies]
 base64 = "0.13.0"
 chrono = "0.4.19"
-clap = "3.1.18"
+clap = "3.2.4"
 colorful = "0.2.1"
 crossbeam = "0.8.1"
 ctrlc = "3.2.2"
 directories = "4.0.1"
+enum_dispatch = "0.3.8"
 epub-builder = "0.5.0"
+futures = "0.3.21"
 indicatif = "0.16.2"
 md5 = "0.7.0"
 paris = "1.5.13"
 printpdf = { version = "0.5.2", features = ["embedded_images"] }
 qrcode = "0.12.0"
-reqwest = { version = "0.11.10", features = ["json"] }
+reqwest = { version = "0.11.11", features = ["json"] }
 serde = { version = "1.0.137", features = ["derive"] }
 serde_json = "1.0.81"
 tokio = { version = "1.19.2", features = ["full"] }

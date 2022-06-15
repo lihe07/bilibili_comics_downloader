@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use std::io::{Read, Write};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use super::config::Config;
 
 #[derive(serde::Serialize, serde::Deserialize)]
@@ -24,7 +24,27 @@ pub struct EpisodeCache {
     // 文件顺序
     pub host: String,
     pub ord: f64,
+    pub root_dir: PathBuf,
 }
+
+
+// impl AsRef<EpisodeInfo> for EpisodeCache {
+//     fn as_ref(&self) -> &EpisodeInfo {
+//         EpisodeInfo {
+//             title: self.title.to_owned(),
+//             id: self.id,
+//             is_locked: true,
+//             ord: self.ord,
+//         }.as_ref()
+//     }
+// }
+
+impl crate::lib::HasOrd for &'_ EpisodeCache {
+    fn ord(&self) -> f64 {
+        self.ord
+    }
+}
+
 
 impl EpisodeCache {
     pub fn load<T: AsRef<Path>>(path: T) -> Option<EpisodeCache> {
@@ -47,6 +67,7 @@ impl EpisodeCache {
             paths: meta.paths,
             host: meta.host,
             ord: meta.ord,
+            root_dir: path.as_ref().to_path_buf(),
         })
     }
     pub fn sync<T: AsRef<Path>>(&self, path: T) {
@@ -76,6 +97,13 @@ impl EpisodeCache {
             }
         }
         not_downloaded
+    }
+
+    pub fn get_paths(&self) -> Vec<PathBuf> {
+        self.paths.iter().map(|link| {
+            let file_name = link.split("/").last().unwrap();
+            self.root_dir.join(file_name)
+        }).collect()
     }
 }
 

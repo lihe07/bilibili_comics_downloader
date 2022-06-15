@@ -58,16 +58,11 @@ async fn main() {
                         .help("漫画的ID或者链接")
                 )
                 .arg(
-                    Arg::new("from")
-                        .value_name("FROM")
-                        .help("从第几话开始下载，默认为0")
-                        .required(false)
-                )
-                .arg(
-                    Arg::new("to")
-                        .value_name("TO")
-                        .help("下载到第几话，默认为最后一话")
-                        .required(false)
+                    Arg::new("range")
+                        .value_name("RANGE")
+                        .long("range")
+                        .short('r')
+                        .help("指定下载范围，如1-3,5,7-")
                 )
         )
         .subcommand(
@@ -85,31 +80,48 @@ async fn main() {
                         .long("format")
                         .help("导出的格式，epub | pdf | zip")
                 )
+                // .arg(
+                //     Arg::new("from")
+                //         .value_name("FROM")
+                //         .long("from")
+                //         .help("从第几话开始下载，默认为0")
+                //         .required(false)
+                // )
+                // .arg(
+                //     Arg::new("to")
+                //         .value_name("TO")
+                //         .long("to")
+                //         .help("下载到第几话，默认为最后一话")
+                //         .required(false)
+                // )
                 .arg(
-                    Arg::new("from")
-                        .value_name("FROM")
-                        .long("from")
-                        .help("从第几话开始下载，默认为0")
-                        .required(false)
+                    Arg::new("range")
+                        .value_name("RANGE")
+                        .long("range")
+                        .short('r')
+                        .help("指定导出范围，如1-3,5,7-")
                 )
                 .arg(
-                    Arg::new("to")
-                        .value_name("TO")
-                        .long("to")
-                        .help("下载到第几话，默认为最后一话")
-                        .required(false)
-                )
-                .arg(
-                    Arg::new("split_pdf")
-                        .help("是否按照每一话输出一个PDF文件")
+                    Arg::new("split")
+                        .help("是否每一话输出一个文件，不能与group同时使用")
                         .short('s')
-                        .long("split-pdf")
+                        .long("split")
                 )
                 .arg(
                     Arg::new("output")
+                        .long("output")
+                        .short('o')
                         .value_name("OUTPUT")
                         .help("输出目录")
                         .required(false)
+                )
+                .arg(
+                    Arg::new("group")
+                        .long("group")
+                        .short('g')
+                        .value_name("GROUP")
+                        .required(false)
+                        .help("分组导出每组包含的章节数量")
                 )
         );
     let matches = cmd.get_matches();
@@ -156,9 +168,8 @@ async fn main() {
         }
         Some(("fetch", matches)) => {
             if let Some(id_or_link) = matches.value_of("id_or_link") {
-                let from = matches.value_of("from").unwrap_or("0").parse::<f64>().unwrap();
-                let to = matches.value_of("to").unwrap_or("-1").parse::<f64>().unwrap();
-                lib::fetch(id_or_link.to_owned(), from, to).await;
+                let range = matches.value_of("range").unwrap_or("").to_string();
+                lib::fetch(id_or_link.to_owned(), range).await;
             } else {
                 log.error("缺少漫画的ID或者链接");
                 log.info("使用bcdown fetch <ID_OR_LINK> 来保存漫画");
@@ -178,15 +189,22 @@ async fn main() {
                     println!("    2. epub");
                     return;
                 }
-                let from = matches.value_of("from").unwrap_or("-1").parse::<f64>().unwrap();
-                let to = matches.value_of("to").unwrap_or("-1").parse::<f64>().unwrap();
-                let split = matches.is_present("split_pdf");
+                // let from = matches.value_of("from").unwrap_or("-1").parse::<f64>().unwrap();
+                // let to = matches.value_of("to").unwrap_or("-1").parse::<f64>().unwrap();
+
+                let range = matches.value_of("range").unwrap_or("").to_string();
+                let split = matches.is_present("split");
+                let grouping = matches.value_of("group").unwrap_or("0").parse::<usize>().unwrap();
+                if grouping > 0 && split {
+                    log.error("不能同时使用分组和拆分");
+                    return;
+                }
                 let format = matches.value_of("format").unwrap();
-                if format != "epub" && format != "pdf" && format != "zip"{
+                if format != "epub" && format != "pdf" && format != "zip" {
                     log.error("目前只支持导出 epub | pdf | zip 格式");
                     return;
                 }
-                lib::export(id_or_link.to_owned(), from, to, split, matches.value_of("output"), format.to_owned());
+                lib::export(id_or_link.to_owned(), range, grouping, split, matches.value_of("output"), format.to_owned());
             } else {
                 log.error("缺少漫画的ID或者链接");
                 log.info("使用bcdown export <ID_OR_LINK> -f <FORMAT> 来导出漫画");

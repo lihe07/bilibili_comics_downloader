@@ -48,7 +48,7 @@ fn calc_best_dpi(img_w: u32, img_h: u32) -> f64 {
 }
 
 
-pub fn from_images(images: Vec<PathBuf>, title: String, bookmark: String, dpi: Option<f64>) -> printpdf::PdfDocumentReference {
+pub fn from_images(images: Vec<PathBuf>, title: &str, bookmark: &str, dpi: Option<f64>) -> printpdf::PdfDocumentReference {
     let (doc, page, layer) = PdfDocument::new(title, Mm(W), Mm(H), "image_layer");
     doc.add_bookmark(bookmark, page);
     let mut current_layer = doc.get_page(page).get_layer(layer);
@@ -72,7 +72,7 @@ pub fn from_images(images: Vec<PathBuf>, title: String, bookmark: String, dpi: O
 }
 
 
-pub fn append(doc: printpdf::PdfDocumentReference, images: Vec<PathBuf>, bookmark: String, dpi: Option<f64>) -> printpdf::PdfDocumentReference {
+pub fn append(doc: printpdf::PdfDocumentReference, images: Vec<PathBuf>, bookmark: &str, dpi: Option<f64>) -> printpdf::PdfDocumentReference {
     let (page, layer) = doc.add_page(Mm(W), Mm(H), "image_layer");
     doc.add_bookmark(bookmark, page);
 

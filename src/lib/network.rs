@@ -150,6 +150,12 @@ pub struct EpisodeInfo {
     pub ord: f64,
 }
 
+impl crate::lib::HasOrd for EpisodeInfo {
+    fn ord(&self) -> f64 {
+        self.ord
+    }
+}
+
 #[derive(Debug, Clone, Deserialize)]
 pub struct ComicInfo {
     pub id: u32,
