@@ -24,7 +24,7 @@ pub async fn get_user_info(config: &Config) -> Option<UserInfo> {
             if let serde_json::Value::Number(code) = code {
                 code.as_i64().unwrap()
             } else {
-                log.error("服务端返回的'code'字段不是数字");
+                log.error("服务端返回的 \"code\" 字段不是数字");
                 println!("调试信息：{:?}", value);
                 exit(1);
             }
@@ -179,8 +179,16 @@ pub async fn get_comic_info(config: &Config, comic_id: u32) -> ComicInfo {
 
         let value: serde_json::Value = resp.json().await.unwrap();
         let data = value.get("data").unwrap();
-        match serde_json::from_value(data.to_owned()) {
-            Ok(value) => {
+        match serde_json::from_value::<ComicInfo>(data.to_owned()) {
+            Ok(mut value) => {
+                // 如果有标题为空的episode，则使用ord作为标题
+                for ep in value.ep_list.iter_mut() {
+                    // 去除空字符
+                    ep.title = ep.title.trim().to_string();
+                    if ep.title.is_empty() {
+                        ep.title = format!("第{}话", ep.ord);
+                    }
+                }
                 return value;
             }
             Err(e) => {

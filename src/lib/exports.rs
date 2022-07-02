@@ -132,7 +132,7 @@ pub struct Epub {
 }
 
 const CONTENT_TEMPLATE: &str = r#"<?xml version="1.0" encoding="UTF-8"?>
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="https://www.idpf.org/2007/ops">
 <body>
 <img src="{src}" alt="{alt}" />
 </body>
@@ -452,7 +452,7 @@ pub enum Item<'a> {
 }
 
 fn get_min_max_ord(episodes: &Vec<&EpisodeCache>) -> (f64, f64) {
-    let mut min = std::f64::MAX;
+    let mut min = 1.7976931348623157E+308f64;
     let mut max = 0.0;
     for ep in episodes {
         if ep.ord < min {

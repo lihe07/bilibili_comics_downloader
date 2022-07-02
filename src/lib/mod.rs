@@ -76,9 +76,9 @@ fn get_dir_size(path: &str) -> u64 {
 
 /// 输出配置信息
 pub async fn info() {
-    let config = config::Config::load();
+    let config = Config::load();
     let mut log = paris::Logger::new();
-    log.info("bcdown 版本: 0.2.0");
+    log.info("bcdown 版本: 0.2.1");
     if let Some(user_info) = network::get_user_info(&config).await {
         log.info("登录信息有效！");
         log.info(format!("用户名：{}", user_info.name));
@@ -92,7 +92,7 @@ pub async fn info() {
 
 /// 清空缓存
 pub fn clear() {
-    let config = config::Config::load();
+    let config = Config::load();
     let mut log = paris::Logger::new();
     log.info(format!("清空文件夹: {}", config.cache_dir));
     delete_all_files(config.cache_dir);
@@ -104,7 +104,7 @@ pub enum LoginMethod {
 }
 
 pub async fn show_login_info() {
-    let config = config::Config::load();
+    let config = Config::load();
     let mut log = paris::Logger::new();
     if let Some(user_info) = network::get_user_info(&config).await {
         log.info("登录信息有效！");
@@ -118,7 +118,7 @@ pub async fn show_login_info() {
 
 pub async fn login(method: LoginMethod) {
     let mut log = paris::Logger::new();
-    let mut config = config::Config::load();
+    let mut config = Config::load();
     match method {
         LoginMethod::SESSDATA(sessdata) => {
             config.sessdata = sessdata;
@@ -185,7 +185,7 @@ pub async fn login(method: LoginMethod) {
 
 pub async fn list() {
     let mut log = paris::Logger::new();
-    let config = config::Config::load();
+    let config = Config::load();
     let cache = cache::Cache::load(&config);
     for comic in cache.comics.values() {
         log.info(format!("{} - {}：", comic.id, comic.title));
@@ -225,7 +225,7 @@ fn parse_id_or_link(id_or_link: String) -> u32 {
 pub async fn search(id_or_link: String) {
     let id = parse_id_or_link(id_or_link);
     let mut log = paris::Logger::new();
-    let config = config::Config::load();
+    let config = Config::load();
     let mut comic_info = network::get_comic_info(&config, id).await;
     log.success(format!("漫画标题：{}", comic_info.title.bold()));
     log.success(format!("漫画作者 / 出版社：{}", comic_info.author_name.join(",")));
@@ -266,7 +266,7 @@ async fn run_task(
         ep_cache
     } else {
         let indexes = network::get_episode_images(&config, ep.id).await.unwrap();
-        let ep_cache = cache::EpisodeCache {
+        let ep_cache = EpisodeCache {
             id: ep.id,
             title: ep.title.to_owned(),
             files: vec![],
@@ -302,7 +302,7 @@ async fn run_task(
 pub async fn fetch(id_or_link: String, range: String) {
     let id = parse_id_or_link(id_or_link);
     let mut log = paris::Logger::new();
-    let config = config::Config::load();
+    let config = Config::load();
     let comic_info = network::get_comic_info(&config, id).await;
     let cache = cache::Cache::load(&config);
     let cache_root = Path::new(&config.cache_dir);
