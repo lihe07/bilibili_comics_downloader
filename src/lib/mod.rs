@@ -1,13 +1,13 @@
-use std::collections::HashMap;
-use std::io::Read;
-use std::path::{Path, PathBuf};
-use std::process::exit;
-use qrcode::QrCode;
-use std::time::Duration;
 use colorful::Colorful;
 use futures::future::Either;
 use futures::pin_mut;
 use indicatif::ProgressBar;
+use qrcode::QrCode;
+use std::collections::HashMap;
+use std::io::Read;
+use std::path::{Path, PathBuf};
+use std::process::exit;
+use std::time::Duration;
 use tokio::sync::mpsc::Sender;
 
 use crate::lib::cache::EpisodeCache;
@@ -15,12 +15,11 @@ use crate::lib::config::Config;
 use crate::lib::exports::Item;
 use crate::lib::network::{down_to, EpisodeInfo};
 
-pub mod config;
-pub mod network;
 pub mod cache;
-mod pdf;
+pub mod config;
 mod exports;
-
+pub mod network;
+mod pdf;
 
 fn delete_all_files(path: String) {
     // 递归删除文件夹下的所有文件
@@ -78,17 +77,19 @@ fn get_dir_size(path: &str) -> u64 {
 pub async fn info() {
     let config = Config::load();
     let mut log = paris::Logger::new();
-    log.info("bcdown 版本: 0.2.1");
+    log.info("bcdown 版本: 0.2.2");
     if let Some(user_info) = network::get_user_info(&config).await {
         log.info("登录信息有效！");
         log.info(format!("用户名：{}", user_info.name));
         log.info(format!("漫币余额：{}", user_info.coin));
     }
     log.info(format!("缓存目录：{}", config.cache_dir));
-    log.info(format!("缓存目录大小：{}", bytes_with_unit(get_dir_size(config.cache_dir.as_str()))));
+    log.info(format!(
+        "缓存目录大小：{}",
+        bytes_with_unit(get_dir_size(config.cache_dir.as_str()))
+    ));
     log.info(format!("默认下载目录：{}", config.default_download_dir));
 }
-
 
 /// 清空缓存
 pub fn clear() {
@@ -115,7 +116,6 @@ pub async fn show_login_info() {
     }
 }
 
-
 pub async fn login(method: LoginMethod) {
     let mut log = paris::Logger::new();
     let mut config = Config::load();
@@ -134,7 +134,8 @@ pub async fn login(method: LoginMethod) {
         LoginMethod::QRCODE => {
             let (qr_data, oauth) = network::get_qr_data(&config).await;
             let code = QrCode::new(qr_data.to_owned()).unwrap();
-            let image = code.render::<qrcode::render::unicode::Dense1x2>()
+            let image = code
+                .render::<qrcode::render::unicode::Dense1x2>()
                 .dark_color(qrcode::render::unicode::Dense1x2::Dark)
                 .light_color(qrcode::render::unicode::Dense1x2::Light)
                 .build();
@@ -191,13 +192,16 @@ pub async fn list() {
         log.info(format!("{} - {}：", comic.id, comic.title));
         let mut episodes = comic.episodes.values().collect::<Vec<_>>();
         episodes.sort_by(|a, b| a.ord.partial_cmp(&b.ord).unwrap());
-        let episodes = episodes.iter().map(|e|
-            if e.not_downloaded().len() == 0 {
-                format!("    {} - {} - {}", e.ord, e.title, "已下载".green())
-            } else {
-                format!("    {} - {} - {}", e.ord, e.title, "未下载".red())
-            }
-        ).collect::<Vec<_>>();
+        let episodes = episodes
+            .iter()
+            .map(|e| {
+                if e.not_downloaded().len() == 0 {
+                    format!("    {} - {} - {}", e.ord, e.title, "已下载".green())
+                } else {
+                    format!("    {} - {} - {}", e.ord, e.title, "未下载".red())
+                }
+            })
+            .collect::<Vec<_>>();
         println!("{}", episodes.join("\n"));
     }
 }
@@ -212,7 +216,10 @@ fn parse_id_or_link(id_or_link: String) -> u32 {
     if id_or_link.contains("mc") {
         let id = id_or_link.split("mc").collect::<Vec<&str>>()[1];
         // 从头开始 直到遇到非数字字符为止
-        let id = id.chars().take_while(|c| c.is_numeric()).collect::<String>();
+        let id = id
+            .chars()
+            .take_while(|c| c.is_numeric())
+            .collect::<String>();
         if let Ok(id) = id.parse::<u32>() {
             return id;
         }
@@ -228,18 +235,27 @@ pub async fn search(id_or_link: String) {
     let config = Config::load();
     let mut comic_info = network::get_comic_info(&config, id).await;
     log.success(format!("漫画标题：{}", comic_info.title.bold()));
-    log.success(format!("漫画作者 / 出版社：{}", comic_info.author_name.join(",")));
+    log.success(format!(
+        "漫画作者 / 出版社：{}",
+        comic_info.author_name.join(",")
+    ));
     log.success(format!("漫画标签：{}", comic_info.styles.join(",")));
-    comic_info.ep_list.sort_by(|a, b| a.ord.partial_cmp(&b.ord).unwrap());
+    comic_info
+        .ep_list
+        .sort_by(|a, b| a.ord.partial_cmp(&b.ord).unwrap());
 
-    let episodes: Vec<String> = comic_info.ep_list.iter().map(|ep| {
-        let ep = ep.to_owned();
-        if ep.is_locked {
-            format!("    {} - {} - {}", ep.ord, "锁定".red(), ep.title)
-        } else {
-            format!("    {} - {} - {}", ep.ord, "可用".green(), ep.title)
-        }
-    }).collect();
+    let episodes: Vec<String> = comic_info
+        .ep_list
+        .iter()
+        .map(|ep| {
+            let ep = ep.to_owned();
+            if ep.is_locked {
+                format!("    {} - {} - {}", ep.ord, "锁定".red(), ep.title)
+            } else {
+                format!("    {} - {} - {}", ep.ord, "可用".green(), ep.title)
+            }
+        })
+        .collect();
     log.success("漫画章节：\n");
     println!("{}", episodes.join("\n"));
 }
@@ -248,6 +264,7 @@ pub async fn search(id_or_link: String) {
 enum Msg {
     Size(usize),
     Halt,
+    Done,
 }
 
 async fn run_task(
@@ -282,7 +299,12 @@ async fn run_task(
     let not_downloaded = ep_cache.not_downloaded();
     let mut downloaded = Vec::new();
 
-    for (i, url) in network::get_image_tokens(&config, not_downloaded.clone()).await?.iter().enumerate() { // 出错的概率很低，但不是没有
+    for (i, url) in network::get_image_tokens(&config, not_downloaded.clone())
+        .await?
+        .iter()
+        .enumerate()
+    {
+        // 出错的概率很低，但不是没有
         let file_name = not_downloaded.get(i).unwrap().split("/").last().unwrap();
         let path = ep_root.join(file_name);
         if let Some(size) = down_to(&config, url.to_owned(), &path).await {
@@ -297,7 +319,6 @@ async fn run_task(
         None
     }
 }
-
 
 pub async fn fetch(id_or_link: String, range: String) {
     let id = parse_id_or_link(id_or_link);
@@ -333,7 +354,6 @@ pub async fn fetch(id_or_link: String, range: String) {
     comic_cache.sync(&cache_root.join(format!("{}", id)));
     // 获取全部可用章节
 
-
     let mut ep_list = comic_info.ep_list.clone();
     ep_list.retain(|ep| {
         if ep.is_locked {
@@ -354,19 +374,20 @@ pub async fn fetch(id_or_link: String, range: String) {
 
     ep_list.sort_by(|a, b| a.ord.partial_cmp(&b.ord).unwrap());
     log.info("将要下载的漫画章节：\n");
-    let episodes: Vec<String> = ep_list.iter().map(|ep| {
-        let ep = ep.to_owned();
-        format!("    {} - {}", ep.ord, ep.title)
-    }).collect();
+    let episodes: Vec<String> = ep_list
+        .iter()
+        .map(|ep| {
+            let ep = ep.to_owned();
+            format!("    {} - {}", ep.ord, ep.title)
+        })
+        .collect();
     println!("{}", episodes.join("\n"));
     // 这里可以多线程
 
     log.info("启动下载线程...");
 
     let style = indicatif::ProgressStyle::default_bar()
-        .template(
-            "[{elapsed_precise}] {bar:40.cyan/blue} {pos:>7}/{len:7} {msg}"
-        )
+        .template("[{elapsed_precise}] {bar:40.cyan/blue} {pos:>7}/{len:7} {msg}")
         .progress_chars("##-");
 
     let bar_overall = ProgressBar::new(ep_list.len() as u64);
@@ -376,36 +397,31 @@ pub async fn fetch(id_or_link: String, range: String) {
     let (halt_sender, mut halt_receiver) = tokio::sync::mpsc::channel(10);
     ctrlc::set_handler(move || {
         halt_sender.blocking_send(()).unwrap();
-    }).expect("无法设置 ctrl+c 处理函数");
+    })
+    .expect("无法设置 ctrl+c 处理函数");
 
     let mut tasks = Vec::new();
     for ep in ep_list.iter() {
-        let ep_root = cache_root.join(format!("{}", id)).join(format!("{}", ep.id));
+        let ep_root = cache_root
+            .join(format!("{}", id))
+            .join(format!("{}", ep.id));
         let statics_sender = statics_sender.clone();
         let bar = bar_overall.clone();
         let config = config.clone();
         let ep = ep.clone();
-        tasks.push(
-            tokio::task::spawn(async move {
-                loop {
-                    let ep_cache = EpisodeCache::load(&ep_root);
-                    if let Some(()) = run_task(
-                        &config,
-                        &ep,
-                        ep_cache,
-                        &ep_root,
-                        &statics_sender,
-                        &bar,
-                    ).await {
-                        break;
-                    }
-                    bar.println(format!("任务 {} 失败! 3s后重试!", ep.id));
-                    tokio::time::sleep(Duration::from_secs(3)).await;
+        tasks.push(tokio::task::spawn(async move {
+            loop {
+                let ep_cache = EpisodeCache::load(&ep_root);
+                if let Some(()) =
+                    run_task(&config, &ep, ep_cache, &ep_root, &statics_sender, &bar).await
+                {
+                    break;
                 }
-            })
-        )
+                bar.println(format!("任务 {} 失败! 3s后重试!", ep.id));
+                tokio::time::sleep(Duration::from_secs(3)).await;
+            }
+        }))
     }
-
 
     let bar = bar_overall.clone();
     tokio::task::spawn(async move {
@@ -414,7 +430,13 @@ pub async fn fetch(id_or_link: String, range: String) {
         loop {
             match statics_receiver.recv().await {
                 Some(Msg::Halt) => {
+                    bar.abandon();
+                    log.warn("用户取消下载");
+                    break;
+                }
+                Some(Msg::Done) => {
                     bar.finish();
+                    log.success("下载完成");
                     break;
                 }
                 Some(Msg::Size(size)) => {
@@ -422,7 +444,10 @@ pub async fn fetch(id_or_link: String, range: String) {
                     let duration = now.signed_duration_since(last.0);
                     if duration.num_seconds() >= 1 {
                         let bytes_per_second = size as f64 / duration.num_seconds() as f64;
-                        bar.set_message(format!("{} / s", bytes_with_unit(bytes_per_second as u64)));
+                        bar.set_message(format!(
+                            "{} / s",
+                            bytes_with_unit(bytes_per_second as u64)
+                        ));
                         last = (now, size);
                     }
                 }
@@ -437,7 +462,6 @@ pub async fn fetch(id_or_link: String, range: String) {
             }
         }
     });
-
 
     let tasks = futures::future::join_all(tasks);
 
@@ -456,18 +480,14 @@ pub async fn fetch(id_or_link: String, range: String) {
 
     if let Either::Left(_) = futures::future::select(future1, future2).await {
         bar_overall.finish();
-        log.success("下载完成");
+        statics_sender.send(Msg::Done).await.unwrap();
     } else {
-        bar_overall.finish();
-        log.warn("用户取消下载");
+        bar_overall.abandon();
+        statics_sender.send(Msg::Halt).await.unwrap();
     }
-
-    statics_sender.send(Msg::Halt).await.unwrap();
-
 
     // 进行清理工作
 }
-
 
 fn make_groups(list: Vec<&EpisodeCache>, num: usize) -> Vec<Item> {
     let mut groups = Vec::new();
@@ -511,7 +531,9 @@ fn apply_range<T: HasOrd>(mut list: Vec<T>, range: &str) -> Vec<T> {
 
         for item in &list {
             if item.ord() >= from && item.ord() <= to {
-                if result.contains(&item.ord()) { continue; };
+                if result.contains(&item.ord()) {
+                    continue;
+                };
                 result.push(item.ord());
             }
         }
@@ -520,18 +542,28 @@ fn apply_range<T: HasOrd>(mut list: Vec<T>, range: &str) -> Vec<T> {
     list
 }
 
-pub fn export(id_or_link: String, range: String, grouping: usize, split_episodes: bool, export_dir: Option<&str>, format: String) {
+pub fn export(
+    id_or_link: String,
+    range: String,
+    grouping: usize,
+    split_episodes: bool,
+    export_dir: Option<&str>,
+    format: String,
+) {
     let mut log = paris::Logger::new();
     let id = parse_id_or_link(id_or_link);
     let config = Config::load();
     let cache = cache::Cache::load(&config);
     if let Some(comic_cache) = cache.get_comic(id) {
         log.info(format!("开始导出漫画：{}", comic_cache.title));
-        log.info(format!("导出质量：{}", if let Some(dpi) = config.dpi {
-            format!("{}dpi", dpi)
-        } else {
-            "最佳".to_string()
-        }));
+        log.info(format!(
+            "导出质量：{}",
+            if let Some(dpi) = config.dpi {
+                format!("{}dpi", dpi)
+            } else {
+                "最佳".to_string()
+            }
+        ));
         let mut ep_list = comic_cache.episodes.values().collect::<Vec<_>>();
 
         ep_list.sort_by(|a, b| a.ord.partial_cmp(&b.ord).unwrap());
@@ -548,7 +580,6 @@ pub fn export(id_or_link: String, range: String, grouping: usize, split_episodes
             vec![Item::Group(ep_list)]
         };
 
-
         let out_dir = export_dir.unwrap_or(config.default_download_dir.as_str());
         let out_dir = Path::new(out_dir).join(format!("{}", comic_cache.title));
         if !out_dir.exists() || !out_dir.is_dir() {
@@ -556,7 +587,9 @@ pub fn export(id_or_link: String, range: String, grouping: usize, split_episodes
         }
 
         let out = out_dir.display().to_string();
-        let cover_path = Path::new(&config.cache_dir).join(format!("{}", id)).join("cover.jpg");
+        let cover_path = Path::new(&config.cache_dir)
+            .join(format!("{}", id))
+            .join("cover.jpg");
         let format = if format == "pdf" {
             exports::PDF {}.into()
         } else if format == "epub" {
@@ -568,8 +601,9 @@ pub fn export(id_or_link: String, range: String, grouping: usize, split_episodes
                     Some(buf)
                 } else {
                     None
-                }
-            }.into()
+                },
+            }
+            .into()
         } else {
             exports::Zip {}.into()
         };

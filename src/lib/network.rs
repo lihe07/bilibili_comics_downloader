@@ -1,11 +1,11 @@
 use super::config::Config;
-use serde::{Deserialize};
-use std::collections::HashMap;
-use std::path::{Path};
-use std::process::exit;
 use printpdf::image_crate::EncodableLayout;
+use serde::Deserialize;
+use std::collections::HashMap;
+use std::path::Path;
+use std::process::exit;
 use tokio::fs::File;
-use tokio::io::{AsyncWriteExt};
+use tokio::io::AsyncWriteExt;
 
 pub struct UserInfo {
     pub name: String,
@@ -16,7 +16,8 @@ pub struct UserInfo {
 pub async fn get_user_info(config: &Config) -> Option<UserInfo> {
     let mut log = paris::Logger::new();
     let url = "https://api.bilibili.com/x/web-interface/nav";
-    let wallet_url = "https://manga.bilibili.com/twirp/user.v1.User/GetWallet?device=pc&platform=web";
+    let wallet_url =
+        "https://manga.bilibili.com/twirp/user.v1.User/GetWallet?device=pc&platform=web";
     let client = config.get_client();
     if let Ok(resp) = client.get(url).send().await {
         let value: serde_json::Value = resp.json().await.unwrap();
@@ -37,7 +38,13 @@ pub async fn get_user_info(config: &Config) -> Option<UserInfo> {
             log.warn("未登录或登录已过期");
             return None;
         } else if code == 0 {
-            let username = value.get("data").unwrap().get("uname").unwrap().as_str().unwrap();
+            let username = value
+                .get("data")
+                .unwrap()
+                .get("uname")
+                .unwrap()
+                .as_str()
+                .unwrap();
             // 继续查询wallet
             let resp = client.post(wallet_url).send().await.unwrap();
             let value: serde_json::Value = resp.json().await.unwrap();
@@ -63,7 +70,6 @@ pub async fn get_user_info(config: &Config) -> Option<UserInfo> {
     }
 }
 
-
 pub async fn get_qr_data(config: &Config) -> (String, String) {
     let url = "https://passport.bilibili.com/qrcode/getLoginUrl";
     let mut log = paris::Logger::new();
@@ -86,8 +92,20 @@ pub async fn get_qr_data(config: &Config) -> (String, String) {
             exit(1);
         }
         log.done();
-        let url = value.get("data").unwrap().get("url").unwrap().as_str().unwrap();
-        let oauth_key = value.get("data").unwrap().get("oauthKey").unwrap().as_str().unwrap();
+        let url = value
+            .get("data")
+            .unwrap()
+            .get("url")
+            .unwrap()
+            .as_str()
+            .unwrap();
+        let oauth_key = value
+            .get("data")
+            .unwrap()
+            .get("oauthKey")
+            .unwrap()
+            .as_str()
+            .unwrap();
         return (url.to_string(), oauth_key.to_string());
     } else {
         log.done();
@@ -130,7 +148,10 @@ pub async fn check_qr_status(config: &Config, oauth: String) -> QRStatus {
             let data = value.get("data").unwrap();
             // dbg!(resp.cookies());
             let url = data.get("url").unwrap().as_str().unwrap();
-            let sessdata = url.split("&SESSDATA=").collect::<Vec<&str>>()[1].split("&").collect::<Vec<&str>>()[0].to_string();
+            let sessdata = url.split("&SESSDATA=").collect::<Vec<&str>>()[1]
+                .split("&")
+                .collect::<Vec<&str>>()[0]
+                .to_string();
             return QRStatus::Complete(sessdata);
         }
         log.error("无法获取二维码状态");
@@ -147,6 +168,7 @@ pub struct EpisodeInfo {
     pub title: String,
     pub id: u32,
     pub is_locked: bool,
+    pub is_in_free: bool,
     pub ord: f64,
 }
 
@@ -164,6 +186,26 @@ pub struct ComicInfo {
     pub styles: Vec<String>,
     pub ep_list: Vec<EpisodeInfo>,
     pub vertical_cover: String,
+}
+
+fn fix_episode_title(title: &str) -> String {
+    // 将所有不能作为文件名的字符替换为下划线，包括正斜杠和反斜杠
+    let mut result = title.to_string();
+    for c in title.chars() {
+        if c == '/'
+            || c == '\\'
+            || c == ':'
+            || c == '*'
+            || c == '?'
+            || c == '"'
+            || c == '<'
+            || c == '>'
+            || c == '|'
+        {
+            result = result.replace(c, "_");
+        }
+    }
+    result
 }
 
 pub async fn get_comic_info(config: &Config, comic_id: u32) -> ComicInfo {
@@ -187,6 +229,11 @@ pub async fn get_comic_info(config: &Config, comic_id: u32) -> ComicInfo {
                     ep.title = ep.title.trim().to_string();
                     if ep.title.is_empty() {
                         ep.title = format!("第{}话", ep.ord);
+                    }
+                    ep.title = fix_episode_title(&ep.title);
+                    // 如果 is_in_free 为 true 则设置 is_locked 为 false
+                    if ep.is_in_free {
+                        ep.is_locked = false;
                     }
                 }
                 return value;
@@ -224,7 +271,8 @@ pub async fn get_episode_images(config: &Config, ep_id: u32) -> Option<EpisodeIm
     let client = config.get_client();
     let mut payload = HashMap::new();
     payload.insert("ep_id", ep_id);
-    let url = "https://manga.bilibili.com/twirp/comic.v1.Comic/GetImageIndex?device=pc&platform=web";
+    let url =
+        "https://manga.bilibili.com/twirp/comic.v1.Comic/GetImageIndex?device=pc&platform=web";
 
     let resp = client.post(url).json(&payload).send().await.ok()?;
     let value: serde_json::Value = resp.json().await.unwrap();
@@ -267,7 +315,6 @@ pub async fn down_to<T: AsRef<Path>>(config: &Config, url: String, path: T) -> O
     if let Some(md5) = header_md5 {
         let md5 = md5.to_str().unwrap().parse::<String>().unwrap();
 
-
         // 这里的md5是base64编码的 编码的是md5的二进制数组
         let hash = md5::compute(&bytes);
         let hash = base64::encode(hash.as_bytes());
@@ -277,7 +324,7 @@ pub async fn down_to<T: AsRef<Path>>(config: &Config, url: String, path: T) -> O
             return None;
         }
     }
-    let mut file = File::create(&path).await.unwrap();
+    let mut file = File::create(&path).await.ok()?;
     file.write_all(&bytes).await.unwrap();
     Some(bytes.len())
 }
