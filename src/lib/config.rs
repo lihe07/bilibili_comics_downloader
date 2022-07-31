@@ -84,19 +84,19 @@ impl Config {
             // 随便整一个不存在的路径
             current_dir.join("/114514/1919810/")
         };
-        let document_config_path = if let Some(user_dir) = directories::UserDirs::new() {
-            user_dir.document_dir().unwrap().join("bcdown/config.toml")
-        } else {
-            // 随便整一个不存在的路径
-            current_dir.join("/114514/1919810/")
-        };
+        //let document_config_path = if let Some(user_dir) = directories::UserDirs::new() {
+        //    user_dir.document_dir().unwrap().join("bcdown/config.toml")
+        //} else {
+        //    // 随便整一个不存在的路径
+        //    current_dir.join("/114514/1919810/")
+        //};
         // 顺序检查文件是否存在
         if current_config_path.exists() {
             Some(current_config_path)
         } else if home_config_path.exists() {
             Some(home_config_path)
-        } else if document_config_path.exists() {
-            Some(document_config_path)
+        //} else if document_config_path.exists() {
+        //    Some(document_config_path)
         } else {
             None
         }

@@ -60,17 +60,18 @@ fn bytes_with_unit(bytes: u64) -> String {
     format!("{} {:.4}", bytes, unit)
 }
 
-fn get_dir_size(path: &str) -> u64 {
-    let mut size = 0;
-    for entry in std::fs::read_dir(path).unwrap() {
-        let entry = entry.unwrap();
-        if entry.file_type().unwrap().is_file() {
-            size += entry.metadata().unwrap().len();
-        } else if entry.file_type().unwrap().is_dir() {
-            size += get_dir_size(entry.path().to_str().unwrap());
-        }
-    }
-    size
+fn get_dir_size(_path: &str) -> u64 {
+    //let mut size = 0;
+    //for entry in std::fs::read_dir(path).unwrap() {
+    //    let entry = entry.unwrap();
+    //    if entry.file_type().unwrap().is_file() {
+    //        size += entry.metadata().unwrap().len();
+    //    } else if entry.file_type().unwrap().is_dir() {
+    //        size += get_dir_size(entry.path().to_str().unwrap());
+    //    }
+    //}
+    //size
+    0
 }
 
 /// 输出配置信息
@@ -342,6 +343,8 @@ pub async fn fetch(id_or_link: String, range: String) {
         cache::ComicCache {
             id,
             title: comic_info.title.to_owned(),
+            author_names: comic_info.author_name.to_owned(),
+            tags: comic_info.styles.to_owned(),
             episodes: HashMap::new(),
         }
     };
