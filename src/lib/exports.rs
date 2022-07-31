@@ -3,6 +3,7 @@ use std::io::{BufReader, BufWriter, Read, Write};
 use std::path::{Path, PathBuf};
 use epub_builder::{EpubBuilder, EpubContent, ZipLibrary};
 use indicatif::{MultiProgress, ProgressBar};
+use crate::lib::cache::ComicCache;
 use crate::lib::cache::EpisodeCache;
 use crate::lib::config::Config;
 use super::pdf;
@@ -13,9 +14,9 @@ use zip::write::FileOptions;
 pub trait ExportFormat {
     fn get_extension(&self) -> &'static str;
     /// 导出单话
-    fn export_single<P: AsRef<Path>>(&self, episode: &EpisodeCache, path: P, config: &Config);
+    fn export_single<P: AsRef<Path>>(&self, comic: &ComicCache, episode: &EpisodeCache, path: P, config: &Config);
     /// 导出多话且合并
-    fn export_multiple<P: AsRef<Path>>(&self, episodes: Vec<&EpisodeCache>, title: &str, path: P, config: &Config, bar: &ProgressBar);
+    fn export_multiple<P: AsRef<Path>>(&self, comic: &ComicCache, episodes: Vec<&EpisodeCache>, title: &str, path: P, config: &Config, bar: &ProgressBar);
 }
 
 #[enum_dispatch::enum_dispatch]
@@ -33,7 +34,7 @@ impl ExportFormat for PDF {
         "pdf"
     }
 
-    fn export_single<P: AsRef<Path>>(&self, episode: &EpisodeCache, path: P, config: &Config) {
+    fn export_single<P: AsRef<Path>>(&self, _: &ComicCache, episode: &EpisodeCache, path: P, config: &Config) {
         let paths = episode.get_paths();
         let doc = pdf::from_images(paths, &episode.title, &episode.title, config.dpi.clone());
         let file = File::create(path.as_ref()).unwrap();
@@ -41,7 +42,7 @@ impl ExportFormat for PDF {
         doc.save(&mut buf).unwrap();
     }
 
-    fn export_multiple<P: AsRef<Path>>(&self, episodes: Vec<&EpisodeCache>, title: &str, path: P, config: &Config, bar: &ProgressBar) {
+    fn export_multiple<P: AsRef<Path>>(&self, _: &ComicCache, episodes: Vec<&EpisodeCache>, title: &str, path: P, config: &Config, bar: &ProgressBar) {
         let mut pdf = None;
         for (i, episode) in episodes.iter().enumerate() {
             let paths = episode.get_paths();
@@ -58,7 +59,7 @@ impl ExportFormat for PDF {
     }
 }
 
-// 
+//
 // pub fn export_pdf(
 //     split_episodes: bool,
 //     comic_dir: PathBuf,
@@ -69,7 +70,7 @@ impl ExportFormat for PDF {
 //     comic_cache: &ComicCache,
 // ) {
 //     let mut log = paris::Logger::new();
-// 
+//
 //     if split_episodes {
 //         let mut files = Vec::new();
 //         log.info("为每一话生成PDF文件...");
@@ -79,7 +80,7 @@ impl ExportFormat for PDF {
 //                 let file_name = link.split('/').last().unwrap();
 //                 ep_dir.join(file_name)
 //             }).collect::<Vec<_>>();
-// 
+//
 //             let doc = pdf::from_images(paths, ep.title.clone(), ep.title.clone(), config.dpi.clone());
 //             let path = ep_dir.join(
 //                 if let Some(dpi) = config.dpi {
@@ -95,8 +96,8 @@ impl ExportFormat for PDF {
 //             bar.inc(1);
 //         }
 //         bar.finish();
-// 
-// 
+//
+//
 //         // 将每一话的PDF文件分别复制到对应的文件夹中
 //         for (path, target_name) in files {
 //             std::fs::copy(&path, out_dir.join(target_name)).unwrap();
@@ -118,7 +119,7 @@ impl ExportFormat for PDF {
 //         }
 //         log.done();
 //         log.success("生成PDF文件完成");
-// 
+//
 //         let path = out_dir.join("merged.pdf".to_string());
 //         let mut file = File::create(&path).unwrap();
 //         let mut buf_writer = BufWriter::new(&mut file);
@@ -141,13 +142,22 @@ const CONTENT_TEMPLATE: &str = r#"<?xml version="1.0" encoding="UTF-8"?>
 const STYLE: &str = "body { margin: 0; padding: 0; } img { width: 100%; height: auto; }";
 
 impl Epub {
-    fn make_builder(&self, title: &str) -> EpubBuilder<ZipLibrary> {
+    fn make_builder(&self, comic: &ComicCache, title: &str, ord: &Option<f64>) -> EpubBuilder<ZipLibrary> {
         let zip = ZipLibrary::new().unwrap();
         let mut builder = EpubBuilder::new(zip).unwrap();
         if let Some(cover) = self.cover.as_ref() {
             builder.add_cover_image("images/cover.jpg", cover.as_slice(), "image/jpeg").unwrap();
         }
         builder.metadata("title", title).unwrap();
+        builder.metadata("lang", "zho").unwrap();
+        comic.author_names.iter().for_each(|au| {builder.metadata("author", &(*au)[..]).unwrap(); ()} );
+        builder.metadata("subject", "漫画").unwrap();
+        comic.subjects.iter().for_each(|su| {builder.metadata("subject", &(*su)[..]).unwrap(); ()} );
+        match ord {
+            Some(ord) => { builder.metadata("description", &format!("{}/{}", comic.title, ord)).unwrap(); () }
+            None => { builder.metadata("description", &format!("{}", comic.title)).unwrap(); () }
+        }
+
         builder.stylesheet(STYLE.as_bytes()).unwrap();
         builder
     }
@@ -172,8 +182,8 @@ impl ExportFormat for Epub {
         "epub"
     }
 
-    fn export_single<P: AsRef<Path>>(&self, episode: &EpisodeCache, path: P, _config: &Config) {
-        let mut builder = self.make_builder(&episode.title);
+    fn export_single<P: AsRef<Path>>(&self, comic: &ComicCache, episode: &EpisodeCache, path: P, _config: &Config) {
+        let mut builder = self.make_builder(&comic, &episode.title, &Some(episode.ord));
         for (i, path) in episode.get_paths().iter().enumerate() {
             let file = File::open(path).unwrap();
             let mut buf_reader = BufReader::new(file);
@@ -197,8 +207,8 @@ impl ExportFormat for Epub {
         builder.generate(&mut buf_writer).unwrap();
     }
 
-    fn export_multiple<P: AsRef<Path>>(&self, episodes: Vec<&EpisodeCache>, title: &str, path: P, _config: &Config, bar: &ProgressBar) {
-        let mut builder = self.make_builder(title);
+    fn export_multiple<P: AsRef<Path>>(&self, comic: &ComicCache, episodes: Vec<&EpisodeCache>, title: &str, path: P, _config: &Config, bar: &ProgressBar) {
+        let mut builder = self.make_builder(&comic, title, &None);
         for ep in episodes {
             for (i, path) in ep.get_paths().iter().enumerate() {
                 let file = File::open(path).unwrap();
@@ -368,7 +378,7 @@ impl ExportFormat for Zip {
         "zip"
     }
 
-    fn export_single<P: AsRef<Path>>(&self, episode: &EpisodeCache, path: P, _config: &Config) {
+    fn export_single<P: AsRef<Path>>(&self, _: &ComicCache, episode: &EpisodeCache, path: P, _config: &Config) {
         let file = File::create(path).unwrap();
         let writer = BufWriter::new(file);
         let mut zip = ZipWriter::new(writer);
@@ -376,7 +386,7 @@ impl ExportFormat for Zip {
         zip.finish().unwrap();
     }
 
-    fn export_multiple<P: AsRef<Path>>(&self, episodes: Vec<&EpisodeCache>, _title: &str, path: P, _config: &Config, bar: &ProgressBar) {
+    fn export_multiple<P: AsRef<Path>>(&self, _: &ComicCache, episodes: Vec<&EpisodeCache>, _title: &str, path: P, _config: &Config, bar: &ProgressBar) {
         let file = File::create(path).unwrap();
         let writer = BufWriter::new(file);
         let mut zip = ZipWriter::new(writer);
@@ -480,7 +490,7 @@ impl Item<'_> {
     }
 }
 
-pub fn export(comic_name: &str, items: Vec<Item>, config: &Config, out_dir: &PathBuf, format: &ExportFormatEnum) {
+pub fn export(comic: &ComicCache, items: Vec<Item>, config: &Config, out_dir: &PathBuf, format: &ExportFormatEnum) {
     let m = MultiProgress::new();
 
     let bar_style = indicatif::ProgressStyle::default_bar()
@@ -504,7 +514,7 @@ pub fn export(comic_name: &str, items: Vec<Item>, config: &Config, out_dir: &Pat
             Item::Single(episode) => {
                 bar.set_length(1);
                 bar.set_position(0);
-                format.export_single(episode, path, &config);
+                format.export_single(comic, episode, path, &config);
                 bar.inc(1);
                 bar.finish();
             }
@@ -512,7 +522,7 @@ pub fn export(comic_name: &str, items: Vec<Item>, config: &Config, out_dir: &Pat
                 bar.set_length(episodes.len() as u64);
                 bar.set_position(0);
                 // TODO
-                format.export_multiple(episodes, comic_name, path, &config, &bar);
+                format.export_multiple(comic, episodes, &comic.title, path, &config, &bar);
                 bar.finish();
             }
         }

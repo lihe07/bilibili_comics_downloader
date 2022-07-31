@@ -111,7 +111,7 @@ impl EpisodeCache {
 struct ComicMeta {
     title: String,
     author_names: Vec<String>,
-    tags: Vec<String>,
+    subjects: Vec<String>,
 }
 
 #[derive(Debug, Clone)]
@@ -120,7 +120,7 @@ pub struct ComicCache {
     // 漫画id 作为文件夹名称
     pub title: String,
     pub author_names: Vec<String>,
-    pub tags: Vec<String>,
+    pub subjects: Vec<String>,
     // 漫画标题
     pub episodes: HashMap<u32, EpisodeCache>,
 }
@@ -151,7 +151,7 @@ impl ComicCache {
             id: path.as_ref().file_name()?.to_str()?.parse::<u32>().ok()?,
             title: meta.title,
             author_names: meta.author_names,
-            tags: meta.tags,
+            subjects: meta.subjects,
             episodes,
         })
     }
@@ -171,7 +171,7 @@ impl ComicCache {
         let meta = ComicMeta {
             title: self.title.clone(),
             author_names: self.author_names.clone(),
-            tags: self.tags.clone(),
+            subjects: self.subjects.clone(),
         };
         let meta_str = toml::to_string(&meta).unwrap();
         meta_file.write_all(meta_str.as_bytes()).unwrap();

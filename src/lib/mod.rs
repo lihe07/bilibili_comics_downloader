@@ -344,7 +344,7 @@ pub async fn fetch(id_or_link: String, range: String) {
             id,
             title: comic_info.title.to_owned(),
             author_names: comic_info.author_name.to_owned(),
-            tags: comic_info.styles.to_owned(),
+            subjects: comic_info.styles.to_owned(),
             episodes: HashMap::new(),
         }
     };
@@ -610,7 +610,7 @@ pub fn export(
         } else {
             exports::Zip {}.into()
         };
-        exports::export(&comic_cache.title, ep_list, &config, &out_dir, &format);
+        exports::export(&comic_cache, ep_list, &config, &out_dir, &format);
         log.success(format!("漫画导出至: {}", out));
     } else {
         log.error("在本地缓存中找不到该漫画");
