@@ -10,6 +10,10 @@ use super::pdf;
 use zip::{CompressionMethod, ZipWriter};
 use zip::write::FileOptions;
 
+use serde::{Deserialize, Serialize};
+use serde_json::json;
+
+
 #[enum_dispatch::enum_dispatch(ExportFormatEnum)]
 pub trait ExportFormat {
     fn get_extension(&self) -> &'static str;
@@ -24,6 +28,7 @@ pub enum ExportFormatEnum {
     Epub,
     PDF,
     Zip,
+    Cbz,
 }
 
 pub struct PDF;
@@ -151,7 +156,6 @@ impl Epub {
         builder.metadata("title", title).unwrap();
         builder.metadata("lang", "zho").unwrap();
         comic.author_names.iter().for_each(|au| {builder.metadata("author", &(*au)[..]).unwrap(); ()} );
-        builder.metadata("subject", "漫画").unwrap();
         comic.subjects.iter().for_each(|su| {builder.metadata("subject", &(*su)[..]).unwrap(); ()} );
         match ord {
             Some(ord) => { builder.metadata("description", &format!("{}/{}", comic.title, ord)).unwrap(); () }
@@ -361,7 +365,7 @@ impl Zip {
             .compression_method(CompressionMethod::Stored)
     }
 
-    fn write_single_episode(&self, episode: &EpisodeCache, zip: &mut ZipWriter<BufWriter<File>>) {
+    fn write_single_episode(episode: &EpisodeCache, zip: &mut ZipWriter<BufWriter<File>>) {
         for (i, path) in episode.get_paths().iter().enumerate() {
             let file_ext = path.extension().unwrap().to_str().unwrap();
             let mut file = File::open(path).unwrap();
@@ -382,7 +386,7 @@ impl ExportFormat for Zip {
         let file = File::create(path).unwrap();
         let writer = BufWriter::new(file);
         let mut zip = ZipWriter::new(writer);
-        self.write_single_episode(episode, &mut zip);
+        Zip::write_single_episode(episode, &mut zip);
         zip.finish().unwrap();
     }
 
@@ -390,6 +394,86 @@ impl ExportFormat for Zip {
         let file = File::create(path).unwrap();
         let writer = BufWriter::new(file);
         let mut zip = ZipWriter::new(writer);
+        for episode in episodes {
+            Zip::write_single_episode(episode, &mut zip);
+            bar.inc(1);
+        }
+        zip.finish().unwrap();
+    }
+}
+#[derive(Serialize, Deserialize)]
+struct CbzCredit {
+    person: String,
+    role: String,
+    //primary: bool,
+}
+
+#[derive(Serialize, Deserialize)]
+struct CbzComicBookInfo {
+    title: String,
+    series: String,
+    publisher: String,
+    issue: Option<f64>,
+    genre: String,
+    language: String,
+    credits: Vec<CbzCredit>,
+    tags: Vec<String>,
+}
+
+pub struct Cbz;
+
+impl Cbz {
+
+    fn prepare_metadata(comic: &ComicCache, title: &str, ord: &Option<f64>) -> String {
+        let credits = comic.author_names.iter().map(|au| CbzCredit {person: au.to_string(), role: "Creator".to_string()} ).collect::<Vec<_>>();
+        let info = CbzComicBookInfo {
+            title: title.to_string(),
+            series: comic.title.to_string(),
+            publisher: "哔哩哔哩漫画".to_string(),
+            issue: *ord,
+            genre: comic.subjects[0].clone(),
+            language: "Chineses".to_string(),
+            credits: credits,
+            tags: comic.subjects.clone(),
+        };
+
+        let metadata = json!({
+            "appID": "ComicTagger/",
+            "ComicBookInfo/1.0": info,
+        });
+
+        let j = serde_json::to_string(&metadata).unwrap();
+        //println!("\n{}\n", j);
+
+        j
+    }
+
+    fn write_single_episode(&self, episode: &EpisodeCache, zip: &mut ZipWriter<BufWriter<File>>) {
+        Zip::write_single_episode(episode, zip)
+    }
+}
+
+impl ExportFormat for Cbz {
+    fn get_extension(&self) -> &'static str {
+        "cbz"
+    }
+
+    fn export_single<P: AsRef<Path>>(&self, comic: &ComicCache, episode: &EpisodeCache, path: P, _config: &Config) {
+        let file = File::create(path).unwrap();
+        let writer = BufWriter::new(file);
+        let mut zip = ZipWriter::new(writer);
+        let metadata = Cbz::prepare_metadata(comic, &episode.title, &Some(episode.ord));
+        zip.set_comment(metadata);
+        self.write_single_episode(episode, &mut zip);
+        zip.finish().unwrap();
+    }
+
+    fn export_multiple<P: AsRef<Path>>(&self, comic: &ComicCache, episodes: Vec<&EpisodeCache>, _title: &str, path: P, _config: &Config, bar: &ProgressBar) {
+        let file = File::create(path).unwrap();
+        let writer = BufWriter::new(file);
+        let mut zip = ZipWriter::new(writer);
+        let metadata = Cbz::prepare_metadata(comic, &comic.title, &None);
+        zip.set_comment(metadata);
         for episode in episodes {
             self.write_single_episode(episode, &mut zip);
             bar.inc(1);

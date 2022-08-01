@@ -200,7 +200,7 @@ async fn main() {
                     return;
                 }
                 let format = matches.value_of("format").unwrap();
-                if format != "epub" && format != "pdf" && format != "zip" {
+                if format != "epub" && format != "pdf" && format != "zip" && format != "cbz" {
                     log.error("目前只支持导出 epub | pdf | zip 格式");
                     return;
                 }

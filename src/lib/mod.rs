@@ -607,8 +607,10 @@ pub fn export(
                 },
             }
             .into()
-        } else {
+        } else if format == "zip" {
             exports::Zip {}.into()
+        } else {
+            exports::Cbz {}.into()
         };
         exports::export(&comic_cache, ep_list, &config, &out_dir, &format);
         log.success(format!("漫画导出至: {}", out));
