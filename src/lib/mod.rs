@@ -388,6 +388,7 @@ pub async fn fetch(id_or_link: String, range: String) {
 
     let style = indicatif::ProgressStyle::default_bar()
         .template("[{elapsed_precise}] {bar:40.cyan/blue} {pos:>7}/{len:7} {msg}")
+        .unwrap()
         .progress_chars("##-");
 
     let bar_overall = ProgressBar::new(ep_list.len() as u64);
