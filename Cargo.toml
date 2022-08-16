@@ -13,7 +13,7 @@ license = "MIT"
 [dependencies]
 base64 = "0.13.0"
 chrono = "0.4.20"
-clap = "3.2.16"
+clap = "3.2.17"
 colorful = "0.2.1"
 crossbeam = "0.8.1"
 ctrlc = "3.2.3"
