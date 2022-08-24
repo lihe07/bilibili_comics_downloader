@@ -36,7 +36,7 @@ pub async fn get_user_info(config: &Config) -> Option<UserInfo> {
         };
         if code == -101 {
             log.warn("未登录或登录已过期");
-            return None;
+            None
         } else if code == 0 {
             let username = value
                 .get("data")
@@ -106,7 +106,7 @@ pub async fn get_qr_data(config: &Config) -> (String, String) {
             .unwrap()
             .as_str()
             .unwrap();
-        return (url.to_string(), oauth_key.to_string());
+        (url.to_string(), oauth_key.to_string())
     } else {
         log.done();
         log.error("无法获取二维码数据 请检查网络");
@@ -149,7 +149,7 @@ pub async fn check_qr_status(config: &Config, oauth: String) -> QRStatus {
             // dbg!(resp.cookies());
             let url = data.get("url").unwrap().as_str().unwrap();
             let sessdata = url.split("&SESSDATA=").collect::<Vec<&str>>()[1]
-                .split("&")
+                .split('&')
                 .collect::<Vec<&str>>()[0]
                 .to_string();
             return QRStatus::Complete(sessdata);
@@ -236,7 +236,7 @@ pub async fn get_comic_info(config: &Config, comic_id: u32) -> ComicInfo {
                         ep.is_locked = false;
                     }
                 }
-                return value;
+                value
             }
             Err(e) => {
                 log.error("无法解析服务器响应漫画信息");
