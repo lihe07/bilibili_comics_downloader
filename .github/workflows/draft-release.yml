@@ -26,7 +26,9 @@ jobs:
         run: rustup target add aarch64-unknown-linux-musl
       #with musl c
       - name: Download cross-compile toolchain muslc
-        run: wget  -P $HOME https://musl.cc/aarch64-linux-musl-cross.tgz
+        run: |
+        curl -A 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.100 Safari/537.36' -O https://musl.cc/aarch64-linux-musl-cross.tgz
+        copy aarch64-linux-musl-cross.tgz $HOME
 
       - name: unpack cross-compile toolchains musl
         run: tar -zxvf $HOME/aarch64-linux-musl-cross.tgz -C $HOME
