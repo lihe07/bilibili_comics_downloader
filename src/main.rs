@@ -18,36 +18,27 @@ async fn main() {
                         .long("sessdata")
                         .value_name("SESSDATA")
                         .help("Cookies中的SESSDATA，获取方法见Github")
-                        .required(false)
+                        .required(false),
                 )
                 .arg(
                     Arg::new("qrcode")
                         .short('q')
                         .long("qrcode")
                         .help("通过二维码登录")
-                        .required(false)
-                )
+                        .required(false),
+                ),
         )
-        .subcommand(
-            Command::new("info")
-                .about("获取工具信息，包括配置信息和缓存信息")
-        )
-        .subcommand(
-            Command::new("clear")
-                .about("清除缓存")
-        )
-        .subcommand(
-            Command::new("list")
-                .about("获取本地缓存的漫画列表")
-        )
+        .subcommand(Command::new("info").about("获取工具信息，包括配置信息和缓存信息"))
+        .subcommand(Command::new("clear").about("清除缓存"))
+        .subcommand(Command::new("list").about("获取本地缓存的漫画列表"))
         .subcommand(
             Command::new("search")
                 .about("在bilibili漫画中查找某个漫画")
                 .arg(
                     Arg::new("id_or_link")
                         .value_name("ID_OR_LINK")
-                        .help("漫画的ID或者链接")
-                )
+                        .help("漫画的ID或者链接"),
+                ),
         )
         .subcommand(
             Command::new("fetch")
@@ -55,15 +46,15 @@ async fn main() {
                 .arg(
                     Arg::new("id_or_link")
                         .value_name("ID_OR_LINK")
-                        .help("漫画的ID或者链接")
+                        .help("漫画的ID或者链接"),
                 )
                 .arg(
                     Arg::new("range")
                         .value_name("RANGE")
                         .long("range")
                         .short('r')
-                        .help("指定下载范围，如1-3,5,7-")
-                )
+                        .help("指定下载范围，如1-3,5,7-"),
+                ),
         )
         .subcommand(
             Command::new("export")
@@ -71,14 +62,14 @@ async fn main() {
                 .arg(
                     Arg::new("id_or_link")
                         .value_name("ID_OR_LINK")
-                        .help("漫画的ID或者链接")
+                        .help("漫画的ID或者链接"),
                 )
                 .arg(
                     Arg::new("format")
                         .value_name("FORMAT")
                         .short('f')
                         .long("format")
-                        .help("导出的格式，epub | pdf | zip")
+                        .help("导出的格式，epub | pdf | zip"),
                 )
                 // .arg(
                 //     Arg::new("from")
@@ -99,13 +90,13 @@ async fn main() {
                         .value_name("RANGE")
                         .long("range")
                         .short('r')
-                        .help("指定导出范围，如1-3,5,7-")
+                        .help("指定导出范围，如1-3,5,7-"),
                 )
                 .arg(
                     Arg::new("split")
                         .help("是否每一话输出一个文件，不能与group同时使用")
                         .short('s')
-                        .long("split")
+                        .long("split"),
                 )
                 .arg(
                     Arg::new("output")
@@ -113,7 +104,7 @@ async fn main() {
                         .short('o')
                         .value_name("OUTPUT")
                         .help("输出目录")
-                        .required(false)
+                        .required(false),
                 )
                 .arg(
                     Arg::new("group")
@@ -121,8 +112,8 @@ async fn main() {
                         .short('g')
                         .value_name("GROUP")
                         .required(false)
-                        .help("分组导出每组包含的章节数量")
-                )
+                        .help("分组导出每组包含的章节数量"),
+                ),
         );
     let matches = cmd.get_matches();
     match matches.subcommand() {
@@ -194,7 +185,11 @@ async fn main() {
 
                 let range = matches.value_of("range").unwrap_or("").to_string();
                 let split = matches.is_present("split");
-                let grouping = matches.value_of("group").unwrap_or("0").parse::<usize>().unwrap();
+                let grouping = matches
+                    .value_of("group")
+                    .unwrap_or("0")
+                    .parse::<usize>()
+                    .unwrap();
                 if grouping > 0 && split {
                     log.error("不能同时使用分组和拆分");
                     return;
@@ -204,7 +199,14 @@ async fn main() {
                     log.error("目前只支持导出 epub | pdf | zip 格式");
                     return;
                 }
-                lib::export(id_or_link.to_owned(), range, grouping, split, matches.value_of("output"), format.to_owned());
+                lib::export(
+                    id_or_link.to_owned(),
+                    range,
+                    grouping,
+                    split,
+                    matches.value_of("output"),
+                    format.to_owned(),
+                );
             } else {
                 log.error("缺少漫画的ID或者链接");
                 log.info("使用bcdown export <ID_OR_LINK> -f <FORMAT> 来导出漫画");

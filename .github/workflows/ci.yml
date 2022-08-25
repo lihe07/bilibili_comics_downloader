@@ -1,0 +1,54 @@
+on: [pull_request]
+name: Continuous integration
+
+jobs:
+  ci:
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [macos-latest, ubuntu-latest, windows-latest]
+        style: [all, default]
+        rust:
+          - stable
+        
+        include:
+        # pass feeatures while building
+          - style: all
+            flags: '--all-features'
+          - style: default
+            flags: ''
+          # - style: minimal
+          #   flags: '--no-default-features'
+        # exclude:
+        #   - platform: ubuntu-latest
+        #     style: default
+        #   - platform: macos-latest
+        #     style: minimal
+
+    runs-on: ${{ matrix.platform }}
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: ${{ matrix.rust }}
+          override: true
+          components: rustfmt, clippy
+
+      - name: Set up python
+        uses: actions/setup-python@v2
+          
+      # set up and run pre-commit pre-commit run --all-files
+      - name: run pre-commit
+        uses: pre-commit/action@v2.0.3
+     
+      - name: Build bcdown
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: ${{ matrix.flags }}
+
+  
