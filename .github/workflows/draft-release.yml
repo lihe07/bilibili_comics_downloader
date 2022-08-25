@@ -37,9 +37,10 @@ jobs:
       #     git clone --depth 1 https://github.com/raspberrypi/tools.git $HOME/rpitools
       #     export PATH="$HOME/rpitools/arm-bcm2708/arm-rpi-4.9.3-linux-gnueabihf/bin:$PATH"
       #     arm-linux-gnueabihf-gcc -v
+      # use curl ,wget will error
       - name: Download and unpack lib openssl
         run: | 
-          wget --no-check-certificate https://www.openssl.org/source/old/1.1.1/openssl-1.1.1f.tar.gz
+          curl -A 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.100 Safari/537.36' -O https://www.openssl.org/source/old/1.1.1/openssl-1.1.1f.tar.gz
           tar -zxvf openssl-1.1.1f.tar.gz -C .
           ls .
       
