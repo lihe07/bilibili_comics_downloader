@@ -48,7 +48,7 @@ jobs:
           export PATH="$HOME/aarch64-linux-musl-cross/bin:$PATH"
           export MACHINE=arm64
           export ARCH=arm
-          export CC=aarch64-unknown-linux-musl
+          export CC=aarch64-linux-musl-cc
           mkdir -p $HOME/openssl
           cd openssl-1.1.1f
           ./config shared --prefix=$HOME/bilibili_comics_downloader/openssl && make 
