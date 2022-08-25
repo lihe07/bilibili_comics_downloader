@@ -25,13 +25,13 @@ jobs:
       - name: Add cargo taget arm64
         run: rustup target add aarch64-unknown-linux-musl
       #with musl c
-      - name: Download cross-compile toolchain muslc
-        run: |
-          curl -O https://musl.cc/aarch64-linux-musl-cross.tgz
-          copy aarch64-linux-musl-cross.tgz $HOME
+      # - name: Download cross-compile toolchain muslc
+      #   run: |
+      #     curl -O https://musl.cc/aarch64-linux-musl-cross.tgz
+      #     copy aarch64-linux-musl-cross.tgz $HOME
 
-      - name: unpack cross-compile toolchains musl
-        run: tar -zxvf $HOME/aarch64-linux-musl-cross.tgz -C $HOME
+      # - name: unpack cross-compile toolchains musl
+      #   run: tar -zxvf $HOME/aarch64-linux-musl-cross.tgz -C $HOME
 
       # used to cross compile openssl and sqlite
       # - name: Download cross-compile toolchains gnu 
@@ -40,23 +40,23 @@ jobs:
       #     export PATH="$HOME/rpitools/arm-bcm2708/arm-rpi-4.9.3-linux-gnueabihf/bin:$PATH"
       #     arm-linux-gnueabihf-gcc -v
       # use curl ,wget will error
-      - name: Download and unpack lib openssl
-        run: | 
-          wget --no-check-certificate https://www.openssl.org/source/old/1.1.1/openssl-1.1.1f.tar.gz
-          tar -zxvf openssl-1.1.1f.tar.gz -C .
-          ls .
+      # - name: Download and unpack lib openssl
+      #   run: | 
+      #     wget --no-check-certificate https://www.openssl.org/source/old/1.1.1/openssl-1.1.1f.tar.gz
+      #     tar -zxvf openssl-1.1.1f.tar.gz -C .
+      #     ls .
       
-      - name: Compile openssl
-        run: | 
-          export PATH="$HOME/aarch64-linux-musl-cross/bin:$PATH"
-          export MACHINE=arm64
-          export ARCH=arm
-          export CC=aarch64-linux-musl-cc
-          mkdir -p $HOME/openssl
-          cd openssl-1.1.1f
-          ./config shared --prefix=$HOME/bilibili_comics_downloader/openssl && make 
-          make install
-          cd ..
+      # - name: Compile openssl
+      #   run: | 
+      #     export PATH="$HOME/aarch64-linux-musl-cross/bin:$PATH"
+      #     export MACHINE=arm64
+      #     export ARCH=arm
+      #     export CC=aarch64-linux-musl-cc
+      #     mkdir -p $HOME/openssl
+      #     cd openssl-1.1.1f
+      #     ./config shared --prefix=$HOME/bilibili_comics_downloader/openssl && make 
+      #     make install
+      #     cd ..
       # compile sqlite
       # - name: Download and unpack lib sqlite3
       #   run: |
@@ -70,13 +70,13 @@ jobs:
       #     make && make install
       
       # build static-linked binary for armv6 (also suitable for aarch64)
+      # export OPENSSL_LIB_DIR=$HOME/bilibili_comics_downloader/openssl/lib
+      #     export OPENSSL_INCLUDE_DIR=$HOME/bilibili_comics_downloader/openssl/include
+      #     export OPENSSL_STATIC=true
+      #     export PATH="$HOME/aarch64-linux-musl-cross/bin:$PATH"
+      #     cp -r $HOME/sql .
       - name: Build 
         run: | 
-          export OPENSSL_LIB_DIR=$HOME/bilibili_comics_downloader/openssl/lib
-          export OPENSSL_INCLUDE_DIR=$HOME/bilibili_comics_downloader/openssl/include
-          export OPENSSL_STATIC=true
-          export PATH="$HOME/aarch64-linux-musl-cross/bin:$PATH"
-          cp -r $HOME/sql .
           cargo build --target aarch64-unknown-linux-musl --release 
   
       - name: Strip binaries (bcdown)
