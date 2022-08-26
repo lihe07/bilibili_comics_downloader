@@ -25,11 +25,9 @@ jobs:
       - name: Add cargo taget arm64
         run: rustup target add aarch64-unknown-linux-musl
       #with musl c
-      # offcial site for musl
-      # curl -O https://musl.cc/aarch64-linux-musl-cross.tgz
       - name: Download cross-compile toolchain muslc
         run: |
-          curl -o aarch64-linux-musl-cross.tgz https://d7.serctl.com/downloads6/2021-02-22-16-58-14--aarch64-linux-musl-cross.tgz
+          curl -O https://musl.cc/aarch64-linux-musl-cross.tgz
           cp aarch64-linux-musl-cross.tgz $HOME
 
       - name: unpack cross-compile toolchains musl
