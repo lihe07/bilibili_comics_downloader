@@ -75,7 +75,6 @@ jobs:
           export OPENSSL_INCLUDE_DIR=$HOME/bilibili_comics_downloader/openssl/include
           export OPENSSL_STATIC=true
           export PATH="$HOME/aarch64-linux-musl-cross/bin:$PATH"
-          cp -r $HOME/sql .
           cargo build --target aarch64-unknown-linux-musl --release 
   
       - name: Strip binaries (bcdown)
