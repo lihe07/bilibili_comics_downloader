@@ -6,92 +6,74 @@ on:
     tags: ["v[0-9]+.[0-9]+.[0-9]+*"]
 
 jobs:
-  arm64:
-  # cross compile
-    name: Build arm64
-    runs-on: ubuntu-latest
-    # after every step is finished,exporting to PATH will be clear,so in next step ,need re-export
-    steps:
-      - name: Check out code
-        uses: actions/checkout@v2
+  # arm64:
+  # # cross compile
+  #   name: Build arm64
+  #   runs-on: ubuntu-latest
+  #   # after every step is finished,exporting to PATH will be clear,so in next step ,need re-export
+  #   steps:
+  #     - name: Check out code
+  #       uses: actions/checkout@v2
 
-      - name: Set up cargo
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
+  #     - name: Set up cargo
+  #       uses: actions-rs/toolchain@v1
+  #       with:
+  #         profile: minimal
+  #         toolchain: stable
+  #         override: true
 
-      - name: Add cargo taget arm64
-        run: rustup target add aarch64-unknown-linux-musl
-      #with musl c
-      - name: Download cross-compile toolchain muslc
-        run: wget -P $HOME https://musl.cc/aarch64-linux-musl-cross.tgz
+  #     - name: Add cargo taget arm64
+  #       run: rustup target add aarch64-unknown-linux-musl
+  #     #with musl c
+  #     - name: Download cross-compile toolchain muslc
+  #       run: wget  -P $HOME https://musl.cc/aarch64-linux-musl-cross.tgz
 
-      - name: unpack cross-compile toolchains musl
-        run: tar -zxvf $HOME/aarch64-linux-musl-cross.tgz -C $HOME
+  #     - name: unpack cross-compile toolchains musl
+  #       run: tar -zxvf $HOME/aarch64-linux-musl-cross.tgz -C $HOME
 
-      # used to cross compile openssl and sqlite
-      # - name: Download cross-compile toolchains gnu 
-      #   run: |
-      #     git clone --depth 1 https://github.com/raspberrypi/tools.git $HOME/rpitools
-      #     export PATH="$HOME/rpitools/arm-bcm2708/arm-rpi-4.9.3-linux-gnueabihf/bin:$PATH"
-      #     arm-linux-gnueabihf-gcc -v
-      # use curl ,wget will error
-      - name: Download and unpack lib openssl
-        run: | 
-          wget --no-check-certificate https://www.openssl.org/source/old/1.1.1/openssl-1.1.1f.tar.gz
-          tar -zxvf openssl-1.1.1f.tar.gz -C .
-          ls .
+  #     - name: Download and unpack lib openssl
+  #       run: | 
+  #         wget --no-check-certificate https://www.openssl.org/source/old/1.1.1/openssl-1.1.1f.tar.gz
+  #         tar -zxvf openssl-1.1.1f.tar.gz -C .
+  #         ls .
       
-      - name: Compile openssl
-        run: | 
-          export PATH="$HOME/aarch64-linux-musl-cross/bin:$PATH"
-          export MACHINE=aarch64
-          export ARCH=arm
-          export CC=aarch64-linux-musl-gcc
-          mkdir -p $HOME/openssl
-          cd openssl-1.1.1f
-          ./config shared --prefix=$HOME/bilibili_comics_downloader/openssl && make 
-          make install
-          cd ..
-      # compile sqlite
-      # - name: Download and unpack lib sqlite3
-      #   run: |
-      #     wget --no-check-certificate https://www.sqlite.org/2022/sqlite-autoconf-3380200.tar.gz
-      #     tar -zxvf sqlite-autoconf-3380200.tar.gz -C .
-      # - name: compile sqlite3
-      #   run: |
-      #     mkdir -p $HOME/sql
-      #     cd sqlite-autoconf-3380200
-      #     ./configure CC=$HOME/rpitools/arm-bcm2708/arm-rpi-4.9.3-linux-gnueabihf/bin/arm-linux-gnueabihf-gcc  --host=arm-linux --prefix=$HOME/sql
-      #     make && make install
+  #     - name: Compile openssl
+  #       run: | 
+  #         export PATH="$HOME/aarch64-linux-musl-cross/bin:$PATH"
+  #         export MACHINE=arm64
+  #         export ARCH=arm
+  #         export CC=aarch64-unknown-linux-musl
+  #         mkdir -p $HOME/openssl
+  #         cd openssl-1.1.1f
+  #         ./config shared --prefix=$HOME/bilibili_comics_downloader/openssl && make 
+  #         make install
+  #         cd ..
       
-      # build static-linked binary for armv6 (also suitable for aarch64)
-      
-      - name: Build 
-        run: | 
-          export OPENSSL_LIB_DIR=$HOME/bilibili_comics_downloader/openssl/lib
-          export OPENSSL_INCLUDE_DIR=$HOME/bilibili_comics_downloader/openssl/include
-          export OPENSSL_STATIC=true
-          export PATH="$HOME/aarch64-linux-musl-cross/bin:$PATH"
-          cargo build --target aarch64-unknown-linux-musl --release 
+  #     # build static-linked binary for arm64 (also suitable for aarch64)
+  #     - name: Build 
+  #       run: | 
+  #         export OPENSSL_LIB_DIR=$HOME/bilibili_comics_downloader/openssl/lib
+  #         export OPENSSL_INCLUDE_DIR=$HOME/bilibili_comics_downloader/openssl/include
+  #         export OPENSSL_STATIC=true
+  #         export PATH="$HOME/aarch64-linux-musl-cross/bin:$PATH"
+  #         cp -r $HOME/sql .
+  #         cargo build --target aarch64-unknown-linux-musl --release 
   
-      - name: Strip binaries (bcdown)
-        run: $HOME/aarch64-linux-musl-cross/bin/ aarch64-linux-musl-strip target/aarch64-unknown-linux-musl/release/bcdown
+  #     - name: Strip binaries (bcdown)
+  #       run: $HOME/aarch64-linux-musl-cross/bin/ aarch64-linux-musl-strip target/aarch64-unknown-linux-musl/release/bcdown
       
-      - name: Create output directory
-        run: mkdir output
+  #     - name: Create output directory
+  #       run: mkdir output
 
-      - name: Copy files to output
-        run: |
-          cp target/aarch64-unknown-linux-musl/release/bcdown output/
+  #     - name: Copy files to output
+  #       run: |
+  #         cp target/aarch64-unknown-linux-musl/release/bcdown output/
          
-      - name: Upload artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: arm64
-          path: output/*
+  #     - name: Upload artifact
+  #       uses: actions/upload-artifact@v2
+  #       with:
+  #         name: arm64
+  #         path: output/*
 
   linux:
     name: Build Linux
@@ -143,6 +125,9 @@ jobs:
           toolchain: stable
           override: true
 
+      - name: Set up python
+        uses: actions/setup-python@v2
+
       - name: Build
         uses: actions-rs/cargo@v1
         with:
@@ -183,14 +168,14 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: build
-          args: --release 
+          args: --target x86_64-pc-windows-msvc  --release
 
       - name: Create output directory
         run: mkdir output
 
       - name: Copy files to output
         run: |
-          cp target\release\bcdown.exe output\
+          cp target/x86_64-pc-windows-msvc\release\bcdown.exe output\
          
       - name: Upload artifact
         uses: actions/upload-artifact@v2
@@ -205,7 +190,9 @@ jobs:
       - linux
       - macos
       - windows
-      - arm64
+      # - arm64
+      # echo "::set-output name=arm64dir::bcdown_${MAJOR}.${MINOR}.${PATCH}_linux_arm64"
+      # above line should be added in run part below after windows item.
     steps:
       - name: Check out code
         uses: actions/checkout@v2
@@ -224,7 +211,6 @@ jobs:
           echo "::set-output name=linuxdir::bcdown_${MAJOR}.${MINOR}.${PATCH}_linux_x64"
           echo "::set-output name=macosdir::bcdown_${MAJOR}.${MINOR}.${PATCH}_macOS_x64"
           echo "::set-output name=windowsdir::bcdown_${MAJOR}.${MINOR}.${PATCH}_windows_x64"
-          echo "::set-output name=arm64dir::bcdown_${MAJOR}.${MINOR}.${PATCH}_linux_arm64"
           echo "::set-output name=innerdir::bcdown-${VERSION}"
       - name: Create Release Draft
         id: create_release
@@ -236,30 +222,30 @@ jobs:
           release_name: ${{ steps.info.outputs.version }} Release
           draft: true
       
-      - name: Create arm64 Directory
-        run: mkdir -p ${{ steps.info.outputs.arm64dir }}
+      # - name: Create arm64 Directory
+      #   run: mkdir -p ${{ steps.info.outputs.arm64dir }}
 
-      - name: Download arm64 Artifacts
-        uses: actions/download-artifact@v2
-        with:
-          name: arm64
-          path: ${{ steps.info.outputs.arm64dir }}
+      # - name: Download arm64 Artifacts
+      #   uses: actions/download-artifact@v2
+      #   with:
+      #     name: arm64
+      #     path: ${{ steps.info.outputs.arm64dir }}
 
-      - name: Restore arm64 File Modes
-        run: |
-          chmod 755 ${{ steps.info.outputs.arm64dir }}/bcdown*
-      - name: Create arm64 tarball
-        run: tar -zcvf ${{ steps.info.outputs.arm64dir }}.tar.gz ${{ steps.info.outputs.arm64dir }}
+      # - name: Restore arm64 File Modes
+      #   run: |
+      #     chmod 755 ${{ steps.info.outputs.arm64dir }}/bcdown*
+      # - name: Create arm64 tarball
+      #   run: tar -zcvf ${{ steps.info.outputs.arm64dir }}.tar.gz ${{ steps.info.outputs.arm64dir }}
 
-      - name: Upload arm64 Artifact
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./${{ steps.info.outputs.arm64dir }}.tar.gz
-          asset_name: ${{ steps.info.outputs.arm64dir }}.tar.gz
-          asset_content_type: application/gzip
+      # - name: Upload arm64 Artifact
+      #   uses: actions/upload-release-asset@v1
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #   with:
+      #     upload_url: ${{ steps.create_release.outputs.upload_url }}
+      #     asset_path: ./${{ steps.info.outputs.arm64dir }}.tar.gz
+      #     asset_name: ${{ steps.info.outputs.arm64dir }}.tar.gz
+      #     asset_content_type: application/gzip
 
       - name: Create Linux Directory
         run: mkdir -p ${{ steps.info.outputs.linuxdir }}
