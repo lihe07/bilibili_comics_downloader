@@ -1,3 +1,4 @@
+#![allow(clippy::upper_case_acronyms)]
 use reqwest::header::HeaderMap;
 use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
@@ -12,7 +13,7 @@ pub struct Config {
 }
 
 fn mkdir<T: AsRef<Path>>(path: T) {
-    if let Err(_) = std::fs::create_dir_all(&path) {
+    if  std::fs::create_dir_all(&path).is_err() {
         let mut log = paris::Logger::new();
         log.error(format!("无法创建目录：{}", path.as_ref().display()));
     }

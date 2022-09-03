@@ -91,7 +91,7 @@ impl EpisodeCache {
         // 返回未下载的文件名
         let mut not_downloaded = Vec::new();
         for path in &self.paths {
-            let end = path.split("/").last().unwrap();
+            let end = path.split('/').last().unwrap();
             if !self.files.contains(&end.to_string()) {
                 not_downloaded.push(path.to_owned());
             }
@@ -103,7 +103,7 @@ impl EpisodeCache {
         self.paths
             .iter()
             .map(|link| {
-                let file_name = link.split("/").last().unwrap();
+                let file_name = link.split('/').last().unwrap();
                 self.root_dir.join(file_name)
             })
             .collect()
@@ -137,7 +137,7 @@ impl ComicCache {
             let entry_path = entry.path();
             if entry_path.is_dir() {
                 let episode_id = entry_path.file_name()?.to_str()?.parse::<u32>().ok()?;
-                let episode_cache = EpisodeCache::load(entry_path.to_owned());
+                let episode_cache = EpisodeCache::load(&entry_path);
                 if let Some(episode_cache) = episode_cache {
                     episodes.insert(episode_id, episode_cache);
                 } else {
@@ -194,8 +194,7 @@ impl Cache {
         }
         // 遍历文件夹
         let mut comics = HashMap::new();
-        for entry in root_dir.read_dir().expect("无法读取缓存文件夹") {
-            if let Ok(entry) = entry {
+        for entry in root_dir.read_dir().expect("无法读取缓存文件夹").flatten() {
                 let entry_path = entry.path();
                 if entry_path.is_dir() {
                     if let Some(comic_cache) = ComicCache::load(&entry_path) {
@@ -205,7 +204,7 @@ impl Cache {
                         std::fs::remove_dir_all(entry_path).unwrap();
                     }
                 }
-            }
+            
         }
         Cache { comics }
     }

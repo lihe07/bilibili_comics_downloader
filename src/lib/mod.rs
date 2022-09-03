@@ -1,3 +1,4 @@
+#![allow(clippy::upper_case_acronyms)]
 use colorful::Colorful;
 use futures::future::Either;
 use futures::pin_mut;
@@ -133,7 +134,7 @@ pub async fn login(method: LoginMethod) {
         }
         LoginMethod::QRCODE => {
             let (qr_data, oauth) = network::get_qr_data(&config).await;
-            let code = QrCode::new(qr_data.to_owned()).unwrap();
+            let code = QrCode::new(&qr_data).unwrap();
             let image = code
                 .render::<qrcode::render::unicode::Dense1x2>()
                 .dark_color(qrcode::render::unicode::Dense1x2::Dark)
@@ -195,7 +196,7 @@ pub async fn list() {
         let episodes = episodes
             .iter()
             .map(|e| {
-                if e.not_downloaded().len() == 0 {
+                if e.not_downloaded().is_empty() {
                     format!("    {} - {} - {}", e.ord, e.title, "已下载".green())
                 } else {
                     format!("    {} - {} - {}", e.ord, e.title, "未下载".red())
@@ -282,7 +283,7 @@ async fn run_task(
         // ep_cache.sync(&ep_root);
         ep_cache
     } else {
-        let indexes = network::get_episode_images(&config, ep.id).await.unwrap();
+        let indexes = network::get_episode_images(config, ep.id).await.unwrap();
         let ep_cache = EpisodeCache {
             id: ep.id,
             title: ep.title.to_owned(),
@@ -299,15 +300,15 @@ async fn run_task(
     let not_downloaded = ep_cache.not_downloaded();
     let mut downloaded = Vec::new();
 
-    for (i, url) in network::get_image_tokens(&config, not_downloaded.clone())
+    for (i, url) in network::get_image_tokens(config, not_downloaded.clone())
         .await?
         .iter()
         .enumerate()
     {
         // 出错的概率很低，但不是没有
-        let file_name = not_downloaded.get(i).unwrap().split("/").last().unwrap();
+        let file_name = not_downloaded.get(i).unwrap().split('/').last().unwrap();
         let path = ep_root.join(file_name);
-        if let Some(size) = down_to(&config, url.to_owned(), &path).await {
+        if let Some(size) = down_to(config, url.to_owned(), &path).await {
             downloaded.push(file_name);
             statics_sender.send(Msg::Size(size)).await.unwrap();
         }
@@ -345,11 +346,9 @@ pub async fn fetch(id_or_link: String, range: String) {
             episodes: HashMap::new(),
         }
     };
-    if !cover_path.is_file() {
-        if let None = down_to(&config, comic_info.vertical_cover.clone(), cover_path).await {
-            log.error("漫画封面下载失败");
-            exit(1);
-        }
+    if !cover_path.is_file() && (down_to(&config, comic_info.vertical_cover.clone(), cover_path).await).is_none() {
+        log.error("漫画封面下载失败");
+        exit(1);
     }
     comic_cache.sync(&cache_root.join(format!("{}", id)));
     // 获取全部可用章节
@@ -358,16 +357,14 @@ pub async fn fetch(id_or_link: String, range: String) {
     ep_list.retain(|ep| {
         if ep.is_locked {
             false
+        } else if let Some(ep_cache) = comic_cache.get_episode(ep.id) {
+            !ep_cache.not_downloaded().is_empty()
         } else {
-            if let Some(ep_cache) = comic_cache.get_episode(ep.id) {
-                ep_cache.not_downloaded().len() != 0
-            } else {
-                true
-            }
+            true
         }
     });
     ep_list = apply_range(ep_list, &range);
-    if ep_list.len() == 0 {
+    if ep_list.is_empty() {
         log.warn("没有需要下载的章节");
         return;
     }
@@ -468,12 +465,12 @@ pub async fn fetch(id_or_link: String, range: String) {
 
     let future1 = async {
         tasks.await;
-        ()
+        
     };
 
     let future2 = async {
         halt_receiver.recv().await;
-        ()
+        
     };
 
     pin_mut!(future1);
@@ -500,7 +497,7 @@ fn make_groups(list: Vec<&EpisodeCache>, num: usize) -> Vec<Item> {
             group = Vec::new();
         }
     }
-    if group.len() > 0 {
+    if !group.is_empty() {
         groups.push(Item::Group(group));
     }
     groups
@@ -519,11 +516,11 @@ fn apply_range<T: HasOrd>(mut list: Vec<T>, range: &str) -> Vec<T> {
 
     let last_ord = list.last().unwrap().ord();
 
-    let fragments = range.split(",");
+    let fragments = range.split(',');
     let mut result = Vec::new();
 
     for fragment in fragments {
-        let mut parts = fragment.split("-");
+        let mut parts = fragment.split('-');
         let from = parts.next().unwrap().parse::<f64>().unwrap_or(0.0);
         let to = parts.next().unwrap().parse::<f64>().unwrap_or(last_ord);
         if from > to {
@@ -569,7 +566,7 @@ pub fn export(
 
         ep_list.sort_by(|a, b| a.ord.partial_cmp(&b.ord).unwrap());
         ep_list = apply_range(ep_list, &range);
-        if ep_list.len() == 0 {
+        if ep_list.is_empty() {
             log.error("没有可以导出的章节");
             return;
         }
@@ -582,7 +579,7 @@ pub fn export(
         };
 
         let out_dir = export_dir.unwrap_or(config.default_download_dir.as_str());
-        let out_dir = Path::new(out_dir).join(format!("{}", comic_cache.title));
+        let out_dir = Path::new(out_dir).join(&comic_cache.title);
         if !out_dir.exists() || !out_dir.is_dir() {
             std::fs::create_dir_all(&out_dir).unwrap();
         }

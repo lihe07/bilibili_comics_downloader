@@ -1,4 +1,3 @@
-use printpdf::image_crate::GenericImageView;
 use printpdf::{Image, Mm, PdfDocument};
 use std::path::PathBuf;
 
@@ -39,8 +38,8 @@ fn calc_best_dpi(img_w: u32, img_h: u32) -> f64 {
     let img_h = img_h as f64;
     let w = W;
     let h = H;
-    let dpi = if img_w > img_h { w / img_w } else { h / img_h };
-    dpi
+    
+    if img_w > img_h { w / img_w } else { h / img_h }
 }
 
 pub fn from_images(
@@ -55,7 +54,7 @@ pub fn from_images(
     for (i, path) in images.iter().enumerate() {
         let d_image = printpdf::image_crate::open(path).unwrap();
         let image = Image::from_dynamic_image(&d_image);
-        let dpi = dpi.unwrap_or(calc_best_dpi(d_image.width(), d_image.height()));
+        let dpi = dpi.unwrap_or_else(|| calc_best_dpi(d_image.width(), d_image.height()));
         image.add_to_layer(
             current_layer,
             calc_transformation(d_image.width(), d_image.height(), dpi),
@@ -84,7 +83,7 @@ pub fn append(
     for (i, path) in images.iter().enumerate() {
         let d_image = printpdf::image_crate::open(path).unwrap();
         let image = Image::from_dynamic_image(&d_image);
-        let dpi = dpi.unwrap_or(calc_best_dpi(d_image.width(), d_image.height()));
+        let dpi = dpi.unwrap_or_else(|| calc_best_dpi(d_image.width(), d_image.height()));
         image.add_to_layer(
             current_layer,
             calc_transformation(d_image.width(), d_image.height(), dpi),
