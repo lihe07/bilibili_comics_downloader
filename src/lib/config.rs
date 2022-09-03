@@ -1,7 +1,8 @@
+#![allow(clippy::upper_case_acronyms)]
+use reqwest::header::HeaderMap;
 use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
 use std::process::exit;
-use reqwest::header::HeaderMap;
 
 #[derive(serde::Deserialize, serde::Serialize, Clone)]
 pub struct Config {
@@ -12,49 +13,48 @@ pub struct Config {
 }
 
 fn mkdir<T: AsRef<Path>>(path: T) {
-    if let Err(_) = std::fs::create_dir_all(&path) {
+    if  std::fs::create_dir_all(&path).is_err() {
         let mut log = paris::Logger::new();
         log.error(format!("无法创建目录：{}", path.as_ref().display()));
     }
 }
-
 
 impl Default for Config {
     fn default() -> Self {
         let mut log = paris::Logger::new();
         log.info("初始化默认配置");
 
-        let (config_path, cache_dir, default_download_dir) = if let Some(user_dir) = directories::UserDirs::new() {
-            if let Some(document_dir) = user_dir.document_dir() {
-                let config_path = document_dir.join("bcdown/config.toml");
-                let cache_dir = document_dir.join("bcdown/cache");
-                let tmp = document_dir.join("bcdown/download");
-                let default_download_dir = user_dir.download_dir().unwrap_or(tmp.as_path());
-                (config_path, cache_dir, default_download_dir.to_path_buf())
+        let (config_path, cache_dir, default_download_dir) =
+            if let Some(user_dir) = directories::UserDirs::new() {
+                if let Some(document_dir) = user_dir.document_dir() {
+                    let config_path = document_dir.join("bcdown/config.toml");
+                    let cache_dir = document_dir.join("bcdown/cache");
+                    let tmp = document_dir.join("bcdown/download");
+                    let default_download_dir = user_dir.download_dir().unwrap_or(tmp.as_path());
+                    (config_path, cache_dir, default_download_dir.to_path_buf())
+                } else {
+                    log.warn("无法获取用户文档目录，将使用用户根目录");
+                    let home_dir = user_dir.home_dir();
+                    let config_path = home_dir.join(".bcdown/config.toml");
+                    let cache_dir = home_dir.join(".bcdown/cache");
+                    let tmp = home_dir.join(".bcdown/download");
+                    let default_download_dir = user_dir.download_dir().unwrap_or(tmp.as_path());
+                    (config_path, cache_dir, default_download_dir.to_path_buf())
+                }
             } else {
-                log.warn("无法获取用户文档目录，将使用用户根目录");
-                let home_dir = user_dir.home_dir();
-                let config_path = home_dir.join(".bcdown/config.toml");
-                let cache_dir = home_dir.join(".bcdown/cache");
-                let tmp = home_dir.join(".bcdown/download");
-                let default_download_dir = user_dir.download_dir().unwrap_or(tmp.as_path());
-                (config_path, cache_dir, default_download_dir.to_path_buf())
-            }
-        } else {
-            log.warn("无法定位用户目录！将使用当前工作目录作为工具根目录");
-            let current_dir = std::env::current_dir().unwrap();
-            let config_path = current_dir.join("config.toml");
-            let cache_dir = current_dir.join("bcdown_cache");
-            let default_download_dir = current_dir.join("bcdown_download");
-            (config_path, cache_dir, default_download_dir)
-        };
+                log.warn("无法定位用户目录！将使用当前工作目录作为工具根目录");
+                let current_dir = std::env::current_dir().unwrap();
+                let config_path = current_dir.join("config.toml");
+                let cache_dir = current_dir.join("bcdown_cache");
+                let default_download_dir = current_dir.join("bcdown_download");
+                (config_path, cache_dir, default_download_dir)
+            };
 
         log.info(format!("配置文件路径：{}", config_path.display()));
         log.info(format!("缓存目录：{}", cache_dir.display()));
         log.info(format!("默认下载目录：{}", default_download_dir.display()));
         mkdir(cache_dir.as_path());
         mkdir(default_download_dir.as_path());
-
 
         let config = Config {
             sessdata: "".to_string(),
@@ -126,16 +126,31 @@ impl Config {
     }
     pub fn get_client(&self) -> reqwest::Client {
         let mut headers = HeaderMap::new();
-        headers.insert("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:101.0) Gecko/20100101 Firefox/101.0".parse().unwrap());
-        headers.insert("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8".parse().unwrap());
-        headers.insert("Accept-Language", "zh-CN,zh;q=0.8,en-US;q=0.5,en;q=0.3".parse().unwrap());
-        headers.insert("Cookie", if self.sessdata.is_empty() {
-            "".parse().unwrap()
-        } else {
-            format!("SESSDATA={}", self.sessdata).parse().unwrap()
-        });
-        let client = reqwest::ClientBuilder::new()
-            .default_headers(headers);
+        headers.insert(
+            "User-Agent",
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:101.0) Gecko/20100101 Firefox/101.0"
+                .parse()
+                .unwrap(),
+        );
+        headers.insert(
+            "Accept",
+            "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+                .parse()
+                .unwrap(),
+        );
+        headers.insert(
+            "Accept-Language",
+            "zh-CN,zh;q=0.8,en-US;q=0.5,en;q=0.3".parse().unwrap(),
+        );
+        headers.insert(
+            "Cookie",
+            if self.sessdata.is_empty() {
+                "".parse().unwrap()
+            } else {
+                format!("SESSDATA={}", self.sessdata).parse().unwrap()
+            },
+        );
+        let client = reqwest::ClientBuilder::new().default_headers(headers);
         client.build().unwrap()
     }
 

@@ -1,3 +1,4 @@
+#![allow(clippy::upper_case_acronyms)]
 use super::pdf;
 use crate::lib::cache::EpisodeCache;
 use crate::lib::config::Config;
@@ -5,7 +6,7 @@ use epub_builder::{EpubBuilder, EpubContent, ZipLibrary};
 use indicatif::{MultiProgress, ProgressBar};
 use std::fs::File;
 use std::io::{BufReader, BufWriter, Read, Write};
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use zip::write::FileOptions;
 use zip::{CompressionMethod, ZipWriter};
 
@@ -41,7 +42,7 @@ impl ExportFormat for PDF {
 
     fn export_single<P: AsRef<Path>>(&self, episode: &EpisodeCache, path: P, config: &Config) {
         let paths = episode.get_paths();
-        let doc = pdf::from_images(paths, &episode.title, &episode.title, config.dpi.clone());
+        let doc = pdf::from_images(paths, &episode.title, &episode.title, config.dpi);
         let file = File::create(path.as_ref()).unwrap();
         let mut buf = BufWriter::new(file);
         doc.save(&mut buf).unwrap();
@@ -63,14 +64,14 @@ impl ExportFormat for PDF {
                     paths,
                     title,
                     &episode.title,
-                    config.dpi.clone(),
+                    config.dpi,
                 ));
             } else {
                 pdf = Some(pdf::append(
                     pdf.unwrap(),
                     paths,
                     &episode.title,
-                    config.dpi.clone(),
+                    config.dpi,
                 ));
             }
             bar.inc(1);
@@ -204,7 +205,7 @@ impl ExportFormat for Epub {
             let mut buf = Vec::new();
             buf_reader.read_to_end(&mut buf).unwrap();
             let file_name = path.file_name().unwrap().to_str().unwrap();
-            let mime = Self::guess_mime(&file_name);
+            let mime = Self::guess_mime(file_name);
             builder
                 .add_resource(
                     format!("images/{}/{}", episode.id, file_name),
@@ -218,7 +219,7 @@ impl ExportFormat for Epub {
                     format!("{}-{}.xhtml", episode.id, i),
                     CONTENT_TEMPLATE
                         .replace("{src}", &format!("images/{}/{}", episode.id, file_name))
-                        .replace("{alt}", &file_name)
+                        .replace("{alt}", file_name)
                         .as_bytes(),
                 ))
                 .unwrap();
@@ -244,7 +245,7 @@ impl ExportFormat for Epub {
                 let mut buf = Vec::new();
                 buf_reader.read_to_end(&mut buf).unwrap();
                 let file_name = path.file_name().unwrap().to_str().unwrap();
-                let mime = Self::guess_mime(&file_name);
+                let mime = Self::guess_mime(file_name);
                 builder
                     .add_resource(
                         format!("images/{}/{}", ep.id, file_name),
@@ -259,7 +260,7 @@ impl ExportFormat for Epub {
                                 format!("{}.xhtml", ep.id),
                                 CONTENT_TEMPLATE
                                     .replace("{src}", &format!("./images/{}/{}", ep.id, file_name))
-                                    .replace("{alt}", &file_name)
+                                    .replace("{alt}", file_name)
                                     .as_bytes(),
                             )
                             .title(&ep.title),
@@ -272,7 +273,7 @@ impl ExportFormat for Epub {
                                 format!("{}-{}.xhtml", ep.id, i),
                                 CONTENT_TEMPLATE
                                     .replace("{src}", &format!("./images/{}/{}", ep.id, file_name))
-                                    .replace("{alt}", &file_name)
+                                    .replace("{alt}", file_name)
                                     .as_bytes(),
                             )
                             .level(2),
@@ -521,7 +522,7 @@ pub enum Item<'a> {
 }
 
 fn get_min_max_ord(episodes: &Vec<&EpisodeCache>) -> (f64, f64) {
-    let mut min = 1.7976931348623157E+308f64;
+    let mut min = 1.797_693_134_862_315_7E308_f64;
     let mut max = 0.0;
     for ep in episodes {
         if ep.ord < min {
@@ -559,7 +560,7 @@ pub fn export(
     comic_name: &str,
     items: Vec<Item>,
     config: &Config,
-    out_dir: &PathBuf,
+    out_dir: &Path,
     format: &ExportFormatEnum,
 ) {
     let m = MultiProgress::new();
@@ -572,7 +573,7 @@ pub fn export(
     let bar = m.add(ProgressBar::new(1));
     bar.set_style(bar_style.clone());
     bar.set_message("等待线程状态...");
-    overall_bar.set_style(bar_style.clone());
+    overall_bar.set_style(bar_style);
     bar.set_position(0);
     for item in items {
         let file_name = format!("{}.{}", item.make_file_name(), format.get_extension());
@@ -583,7 +584,7 @@ pub fn export(
             Item::Single(episode) => {
                 bar.set_length(1);
                 bar.set_position(0);
-                format.export_single(episode, path, &config);
+                format.export_single(episode, path, config);
                 bar.inc(1);
                 bar.finish();
             }
@@ -591,7 +592,7 @@ pub fn export(
                 bar.set_length(episodes.len() as u64);
                 bar.set_position(0);
                 // TODO
-                format.export_multiple(episodes, comic_name, path, &config, &bar);
+                format.export_multiple(episodes, comic_name, path, config, &bar);
                 bar.finish();
             }
         }

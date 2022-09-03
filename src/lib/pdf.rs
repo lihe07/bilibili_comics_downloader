@@ -1,6 +1,5 @@
-use std::path::PathBuf;
 use printpdf::{Image, Mm, PdfDocument};
-use printpdf::image_crate::GenericImageView;
+use std::path::PathBuf;
 
 const H: f64 = 297.;
 // 297mm
@@ -39,23 +38,23 @@ fn calc_best_dpi(img_w: u32, img_h: u32) -> f64 {
     let img_h = img_h as f64;
     let w = W;
     let h = H;
-    let dpi = if img_w > img_h {
-        w / img_w
-    } else {
-        h / img_h
-    };
-    dpi
+    
+    if img_w > img_h { w / img_w } else { h / img_h }
 }
 
-
-pub fn from_images(images: Vec<PathBuf>, title: &str, bookmark: &str, dpi: Option<f64>) -> printpdf::PdfDocumentReference {
+pub fn from_images(
+    images: Vec<PathBuf>,
+    title: &str,
+    bookmark: &str,
+    dpi: Option<f64>,
+) -> printpdf::PdfDocumentReference {
     let (doc, page, layer) = PdfDocument::new(title, Mm(W), Mm(H), "image_layer");
     doc.add_bookmark(bookmark, page);
     let mut current_layer = doc.get_page(page).get_layer(layer);
     for (i, path) in images.iter().enumerate() {
         let d_image = printpdf::image_crate::open(path).unwrap();
         let image = Image::from_dynamic_image(&d_image);
-        let dpi = dpi.unwrap_or(calc_best_dpi(d_image.width(), d_image.height()));
+        let dpi = dpi.unwrap_or_else(|| calc_best_dpi(d_image.width(), d_image.height()));
         image.add_to_layer(
             current_layer,
             calc_transformation(d_image.width(), d_image.height(), dpi),
@@ -71,8 +70,12 @@ pub fn from_images(images: Vec<PathBuf>, title: &str, bookmark: &str, dpi: Optio
     doc
 }
 
-
-pub fn append(doc: printpdf::PdfDocumentReference, images: Vec<PathBuf>, bookmark: &str, dpi: Option<f64>) -> printpdf::PdfDocumentReference {
+pub fn append(
+    doc: printpdf::PdfDocumentReference,
+    images: Vec<PathBuf>,
+    bookmark: &str,
+    dpi: Option<f64>,
+) -> printpdf::PdfDocumentReference {
     let (page, layer) = doc.add_page(Mm(W), Mm(H), "image_layer");
     doc.add_bookmark(bookmark, page);
 
@@ -80,7 +83,7 @@ pub fn append(doc: printpdf::PdfDocumentReference, images: Vec<PathBuf>, bookmar
     for (i, path) in images.iter().enumerate() {
         let d_image = printpdf::image_crate::open(path).unwrap();
         let image = Image::from_dynamic_image(&d_image);
-        let dpi = dpi.unwrap_or(calc_best_dpi(d_image.width(), d_image.height()));
+        let dpi = dpi.unwrap_or_else(|| calc_best_dpi(d_image.width(), d_image.height()));
         image.add_to_layer(
             current_layer,
             calc_transformation(d_image.width(), d_image.height(), dpi),

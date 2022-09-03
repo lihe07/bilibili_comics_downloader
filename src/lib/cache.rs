@@ -1,7 +1,7 @@
+use super::config::Config;
 use std::collections::HashMap;
 use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
-use super::config::Config;
 
 #[derive(serde::Serialize, serde::Deserialize)]
 struct EpisodeMeta {
@@ -27,7 +27,6 @@ pub struct EpisodeCache {
     pub root_dir: PathBuf,
 }
 
-
 // impl AsRef<EpisodeInfo> for EpisodeCache {
 //     fn as_ref(&self) -> &EpisodeInfo {
 //         EpisodeInfo {
@@ -45,7 +44,6 @@ impl crate::lib::HasOrd for &'_ EpisodeCache {
     }
 }
 
-
 impl EpisodeCache {
     pub fn load<T: AsRef<Path>>(path: T) -> Option<EpisodeCache> {
         let meta_path = path.as_ref().join("meta.toml");
@@ -57,7 +55,9 @@ impl EpisodeCache {
             .ok()?
             .map(|entry| entry.unwrap().path())
             .filter(|path| path.is_file())
-            .filter(|path| path.extension() == Some("jpg".as_ref()) || path.extension() == Some("png".as_ref()))
+            .filter(|path| {
+                path.extension() == Some("jpg".as_ref()) || path.extension() == Some("png".as_ref())
+            })
             .map(|path| path.file_name().unwrap().to_str().unwrap().to_string())
             .collect::<Vec<_>>();
         Some(EpisodeCache {
@@ -91,7 +91,7 @@ impl EpisodeCache {
         // 返回未下载的文件名
         let mut not_downloaded = Vec::new();
         for path in &self.paths {
-            let end = path.split("/").last().unwrap();
+            let end = path.split('/').last().unwrap();
             if !self.files.contains(&end.to_string()) {
                 not_downloaded.push(path.to_owned());
             }
@@ -100,10 +100,13 @@ impl EpisodeCache {
     }
 
     pub fn get_paths(&self) -> Vec<PathBuf> {
-        self.paths.iter().map(|link| {
-            let file_name = link.split("/").last().unwrap();
-            self.root_dir.join(file_name)
-        }).collect()
+        self.paths
+            .iter()
+            .map(|link| {
+                let file_name = link.split('/').last().unwrap();
+                self.root_dir.join(file_name)
+            })
+            .collect()
     }
 }
 
@@ -134,7 +137,7 @@ impl ComicCache {
             let entry_path = entry.path();
             if entry_path.is_dir() {
                 let episode_id = entry_path.file_name()?.to_str()?.parse::<u32>().ok()?;
-                let episode_cache = EpisodeCache::load(entry_path.to_owned());
+                let episode_cache = EpisodeCache::load(&entry_path);
                 if let Some(episode_cache) = episode_cache {
                     episodes.insert(episode_id, episode_cache);
                 } else {
@@ -186,13 +189,12 @@ impl Cache {
         if (!root_dir.exists()) || !root_dir.is_dir() {
             std::fs::create_dir_all(&root_dir).unwrap();
             return Cache {
-                comics: HashMap::new()
+                comics: HashMap::new(),
             };
         }
         // 遍历文件夹
         let mut comics = HashMap::new();
-        for entry in root_dir.read_dir().expect("无法读取缓存文件夹") {
-            if let Ok(entry) = entry {
+        for entry in root_dir.read_dir().expect("无法读取缓存文件夹").flatten() {
                 let entry_path = entry.path();
                 if entry_path.is_dir() {
                     if let Some(comic_cache) = ComicCache::load(&entry_path) {
@@ -202,11 +204,9 @@ impl Cache {
                         std::fs::remove_dir_all(entry_path).unwrap();
                     }
                 }
-            }
+            
         }
-        Cache {
-            comics
-        }
+        Cache { comics }
     }
     pub fn get_comic(&self, id: u32) -> Option<&ComicCache> {
         self.comics.get(&id)
@@ -218,4 +218,3 @@ impl Cache {
     //     }
     // }
 }
-
