@@ -195,16 +195,15 @@ impl Cache {
         // 遍历文件夹
         let mut comics = HashMap::new();
         for entry in root_dir.read_dir().expect("无法读取缓存文件夹").flatten() {
-                let entry_path = entry.path();
-                if entry_path.is_dir() {
-                    if let Some(comic_cache) = ComicCache::load(&entry_path) {
-                        comics.insert(comic_cache.id, comic_cache);
-                    } else {
-                        // 清理无效文件夹
-                        std::fs::remove_dir_all(entry_path).unwrap();
-                    }
+            let entry_path = entry.path();
+            if entry_path.is_dir() {
+                if let Some(comic_cache) = ComicCache::load(&entry_path) {
+                    comics.insert(comic_cache.id, comic_cache);
+                } else {
+                    // 清理无效文件夹
+                    std::fs::remove_dir_all(entry_path).unwrap();
                 }
-            
+            }
         }
         Cache { comics }
     }

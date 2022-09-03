@@ -38,8 +38,12 @@ fn calc_best_dpi(img_w: u32, img_h: u32) -> f64 {
     let img_h = img_h as f64;
     let w = W;
     let h = H;
-    
-    if img_w > img_h { w / img_w } else { h / img_h }
+
+    if img_w > img_h {
+        w / img_w
+    } else {
+        h / img_h
+    }
 }
 
 pub fn from_images(
