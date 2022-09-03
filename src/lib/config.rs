@@ -13,7 +13,7 @@ pub struct Config {
 }
 
 fn mkdir<T: AsRef<Path>>(path: T) {
-    if  std::fs::create_dir_all(&path).is_err() {
+    if std::fs::create_dir_all(&path).is_err() {
         let mut log = paris::Logger::new();
         log.error(format!("无法创建目录：{}", path.as_ref().display()));
     }

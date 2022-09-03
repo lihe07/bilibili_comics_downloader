@@ -60,19 +60,9 @@ impl ExportFormat for PDF {
         for (i, episode) in episodes.iter().enumerate() {
             let paths = episode.get_paths();
             if i == 0 {
-                pdf = Some(pdf::from_images(
-                    paths,
-                    title,
-                    &episode.title,
-                    config.dpi,
-                ));
+                pdf = Some(pdf::from_images(paths, title, &episode.title, config.dpi));
             } else {
-                pdf = Some(pdf::append(
-                    pdf.unwrap(),
-                    paths,
-                    &episode.title,
-                    config.dpi,
-                ));
+                pdf = Some(pdf::append(pdf.unwrap(), paths, &episode.title, config.dpi));
             }
             bar.inc(1);
         }

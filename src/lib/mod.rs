@@ -346,7 +346,9 @@ pub async fn fetch(id_or_link: String, range: String) {
             episodes: HashMap::new(),
         }
     };
-    if !cover_path.is_file() && (down_to(&config, comic_info.vertical_cover.clone(), cover_path).await).is_none() {
+    if !cover_path.is_file()
+        && (down_to(&config, comic_info.vertical_cover.clone(), cover_path).await).is_none()
+    {
         log.error("漫画封面下载失败");
         exit(1);
     }
@@ -465,12 +467,10 @@ pub async fn fetch(id_or_link: String, range: String) {
 
     let future1 = async {
         tasks.await;
-        
     };
 
     let future2 = async {
         halt_receiver.recv().await;
-        
     };
 
     pin_mut!(future1);
