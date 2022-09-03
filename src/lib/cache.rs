@@ -1,7 +1,7 @@
+use super::config::Config;
 use std::collections::HashMap;
 use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
-use super::config::Config;
 
 #[derive(serde::Serialize, serde::Deserialize)]
 struct EpisodeMeta {
@@ -27,7 +27,6 @@ pub struct EpisodeCache {
     pub root_dir: PathBuf,
 }
 
-
 // impl AsRef<EpisodeInfo> for EpisodeCache {
 //     fn as_ref(&self) -> &EpisodeInfo {
 //         EpisodeInfo {
@@ -45,7 +44,6 @@ impl crate::lib::HasOrd for &'_ EpisodeCache {
     }
 }
 
-
 impl EpisodeCache {
     pub fn load<T: AsRef<Path>>(path: T) -> Option<EpisodeCache> {
         let meta_path = path.as_ref().join("meta.toml");
@@ -57,7 +55,9 @@ impl EpisodeCache {
             .ok()?
             .map(|entry| entry.unwrap().path())
             .filter(|path| path.is_file())
-            .filter(|path| path.extension() == Some("jpg".as_ref()) || path.extension() == Some("png".as_ref()))
+            .filter(|path| {
+                path.extension() == Some("jpg".as_ref()) || path.extension() == Some("png".as_ref())
+            })
             .map(|path| path.file_name().unwrap().to_str().unwrap().to_string())
             .collect::<Vec<_>>();
         Some(EpisodeCache {
@@ -100,10 +100,13 @@ impl EpisodeCache {
     }
 
     pub fn get_paths(&self) -> Vec<PathBuf> {
-        self.paths.iter().map(|link| {
-            let file_name = link.split("/").last().unwrap();
-            self.root_dir.join(file_name)
-        }).collect()
+        self.paths
+            .iter()
+            .map(|link| {
+                let file_name = link.split("/").last().unwrap();
+                self.root_dir.join(file_name)
+            })
+            .collect()
     }
 }
 
@@ -186,7 +189,7 @@ impl Cache {
         if (!root_dir.exists()) || !root_dir.is_dir() {
             std::fs::create_dir_all(&root_dir).unwrap();
             return Cache {
-                comics: HashMap::new()
+                comics: HashMap::new(),
             };
         }
         // 遍历文件夹
@@ -204,9 +207,7 @@ impl Cache {
                 }
             }
         }
-        Cache {
-            comics
-        }
+        Cache { comics }
     }
     pub fn get_comic(&self, id: u32) -> Option<&ComicCache> {
         self.comics.get(&id)
@@ -218,4 +219,3 @@ impl Cache {
     //     }
     // }
 }
-
