@@ -8,7 +8,7 @@
 
 1. 异步高性能
 
-   网络相关操作使用了基于`tokio`的`reqwests`，较多线程版有较大的性能提升
+   还得是Rust
 
 2. 更加灵活的登录
 
@@ -21,72 +21,34 @@
 4. 更灵活的导出
 
    支持分话导出和合并导出，会自动添加Kindle等阅读器可识别的书签
-   
-   目前支持**epub**，**pdf**和**zip**三种格式
 
-## 使用方法
+   目前支持**epub**，**pdf**，**zip** 和 **plain** 四种格式
+
+5. 自我更新
+
+   不用在手动替换可执行文件了，现在可以用 `bcdown update`自动更新
+
+6. 给Windows系统做的图形化界面
+
+   在 `0.3.0` 版本之后加入，基于 [native-windows-gui](https://crates.io/crates/native-windows-gui)
+
+## 使用方法（命令行）
 
 工具共有如下几个命令：
 
-- `bcdown info ` - 显示配置信息，缓存大小，登录状态
-
-  使用示例：
-
-  - `bcdown info`
-
-    ```
-    ℹ 加载配置文件：D:\Documents\bcdown/config.toml
-    ℹ bcdown 版本: 0.2.1
-    ℹ 登录信息有效！
-    ℹ 用户名：[数据删除]
-    ℹ 漫币余额：[数据删除]
-    ℹ 缓存目录：D:\Documents\bcdown/cache
-    ℹ 缓存目录大小：4.629214677959681 GB
-    ℹ 默认下载目录：D:\Download
-    ```
+- `bcdown info ` - 显示配置信息，缓存大小，登录状态等
 
 - `bcdown login`  - 登录B漫账号，通过二维码或者sessdata
 
   使用示例：
 
-  - `bcdown login -s [数据删除]` 通过sessdata登录
-
-    ```
-    ℹ 加载配置文件：D:\Documents\bcdown/config.toml
-    ℹ 登录信息有效！
-    ℹ 用户名：[数据删除]
-    ℹ 漫币余额：[数据删除]
-    ```
+  - `bcdown login -s [获取到的SESSDATA]` 通过sessdata登录
 
   - `bcdown login -q` 通过扫描二维码登录
-
-    ```
-    ℹ 加载配置文件：D:\Documents\bcdown/config.toml
-        ▀ ██▀▀▀▄  ▀ ▄▄ █▄ ▀▄▄ ▀█▀█▄▀▄ ██▀▀█▄
-          ▀▀ ▄▀ ▀   █ ▀ ▄ ▄▄▄▄▀▄█▀▀██ █ ▄█▀▀█
-           █ █▀█▄▄▀██▄  ▄▀▄▄▄▄▀▄▀▀▀▀█▀▀█▀ ▀▀▀
-         █▄█▀█▀██ ▄   ██▄ █▄ ██ ▄ ▄▀█▄ ██▀ ██
-        █▀ ▀▄▀▀█▀  █▀▄█▄ ▀█▄▄▄▀█▀▀▀ ▄▀▀▄▀ █▄
-         █   █▀█  █▄█  █▄   █▄▄ ▄▀ ██▄█▄  ▀▀█
-        ▄ ▄▄▀▄▀ █▄▄▄ ▄▄▀▄██▄█▄▀█▀▀▀▀▄█▀ ▀█▀
-        █▀█   ▀▀▄███▀█▄▀█ ▀ ▀▄▀▄█ ██ ████▀ █▀
-        ▄▄ █  ▀ █▄▄▀█▀█ ▄█▄▄▄ ▄▄▄█▀▀▄█▀█▀ █▀▀
-        █ ▄▄▀▄▀▄██▀ █ █▀ ▀  ▀▄█▄▀ ▄██▄▀█  ▀██
-        ▀ ▀▀▀ ▀ ▄▀▄▄▀ ▀▀ █▄██▄▀▄▀▀▀ █▀▀▀██▀▀
-        █▀▀▀▀▀█ ▄▀   █▀██▀▀▄█▄▀ ▄ ▀ █ ▀ █▄▀█▀
-        █ ███ █ █  ▄▄▄█▀▄▄▀█▀ ▄█▄█▀▀███▀█▄▀▀▄
-        █ ▀▀▀ █ ▀ ▀▀▀▄ ▀█ █  ██▄█ ▀▀▄▀  ▄  ▀█
-        ▀▀▀▀▀▀▀ ▀▀▀    ▀▀▀▀▀    ▀▀▀▀ ▀▀ ▀ ▀▀▀
-    
-    
-    ✔ 二维码已生成，请扫描二维码登录
-    ℹ 如果显示错误，请手动访问：[链接省略]
-    ⠇ 等待确认...
-    ```
-
-    > **备注**：建议在支持色彩和符号终端中执行，如*Windows Terminal*
-
-- `bcdown clear` - 清空缓存文件夹
+  
+    > **备注**：二维码必须用Bilibili客户端扫描
+  
+- `bcdown clean` - 清空缓存文件夹
 
 - `bcdown search [链接或ID]` - 搜索某个漫画，列出它的全部章节
 
@@ -98,38 +60,39 @@
 
   - `bcdown fetch mc29911 --range 1-20,40-50,60- ` 下载 *mc29911* 第1话到第20话，第40话到第50话 和 第60话之后的所有到本地
 
-    ``
-
 - `bcdown export [链接或ID] --format [epub或pdf] <--range [开始]-[结束],[开始]-,-[结束]> <-s 单独导出每一话> <--output [输出位置]> <-g [组大小>] `  - 导出一个本地漫画
 
-## 构建，编译，安装
+- `bcdown update` - 自我更新
 
-和大部分rust crates一样，只需clone该存储库，之后执行`cargo build --release` 即可本地构建
+## 安装
 
-> **备注**：鉴于依赖项`printpdf`的特性，只有在添加`--release`标签后，工具才会对PDF执行压缩
+命令行版本和图形化版本装一个即可，两个都装也没问题，会共享一个配置文件
 
-这个项目已经发布到`crates.io`上了，因此可以通过`cargo install bcdown`来安装
-
-如果只是普通用户，可以下载编译好的可执行文件：[Releases](https://github.com/lihe07/bilibili_comics_downloader/releases)
+- 命令行版本
+  - 使用cargo：`cargo install bcdown` 或 `cargo binstall bcdown`
+  - [下载 Releases](https://github.com/lihe07/bilibili_comics_downloader/releases)
+- 图形化版本
+  - [下载便携式程序（Windows）](https://www.bilibili.com/video/BV1GJ411x7h7)
 
 ## Kindle使用指南
 
-由于kindle阅读器暂时不支持epub格式的电子书，而pdf格式又过于庞大，不便于传输，这里有几种常见解决方案：
+由于kindle阅读器暂时不支持epub格式的电子书，而pdf格式过于庞大，这里有几种常见解决方案：
 
-1. 使用 `bcdown export XXXX -s -f pdf` 分话导出较小的pdf文件（编码较慢）
+1. 使用 `bcdown export XXXX -s -f pdf` 为每一话创建一个pdf
 
-   > ​	在存储空间较小的设备上需要较多次的传输
+   > 切换起来会比较麻烦
 
-2. 使用 `bcdown export XXXX -f epub` 导出一个大的epub文件（比pdf快），之后使用 `ebook-convert`, `NeatConverter` 等工具转换成 azw3 格式（这里推荐Neat Converter，对大文件支持比较好）
+2. 使用 `bcdown export XXXX -f epub` 导出一个epub文件，之后使用 `ebook-convert`, `Neat Converter` 等工具转换成 azw3 格式（这里推荐[Neat Converter](https://www.neat-reader.cn/downloads/converter)，对大文件支持比较好）
 
-   > ​	实测azw3拥有更好的压缩率，pdf(1.5G) > epub(300M) > azw3(150M)
-   >
-   > ​	由于不同的导出工具的区别，一些小功能可能会失效（如封面图片，标题等）图片和目录的显示已经经过测试，不会出现较大的问题
-## 提交PR
-看[CONTRIBUTING.md](CONTRIBUTING.md)
+   > azw3往往拥有更好的压缩率，同一个漫画 pdf(1.5G) > epub(300M) > azw3(150M)
+
+3. 使用 `bcdown export XXXX -f plain` 导出为图片文件夹格式，之后使用 `Kindle Comic Converter` 等工具转换成 mobi 或 azw3 格式
+## 贡献
+请看[CONTRIBUTING.md](CONTRIBUTING.md)
 ## 联系方式
 
-我的QQ：*3525904273*
+- Email: li@imlihe.com
+- QQ：*3525904273*
 
 ## 更新记录
 
@@ -144,13 +107,14 @@
 - 0.2.0 - 范围下载/导出，优化网络，加入分组导出功能，升级依赖项
 - 0.2.1 - 修复bug
 - 0.2.2 - 修复bug
+- 0.3.0 - 为Windows制作了GUI版本，修复下载速度统计，优化了pdf和epub的导出，添加了plain导出选项
 
 ## 补充
 
 这个工具只是个爬虫，不能下载没有解锁的漫画，因此解决不了钞能力的问题（
 
-如果发现了Bug（~~可能~~会有很多，已经发现了不少），欢迎创建Issue
+如果发现了Bug，欢迎创建Issue
 
 这个工具的更新会很频繁，建议保持使用最新版
 
-由于没有限速功能，短时间内大量的网络请求可能会对B漫造成一定负载。建议不要频繁进行下载操作，尽管目前没有因下载而被封号的案例，但B漫拥有封禁的权力。使用本工具造成的一切损失请自行承担！
+短时间内大量的网络请求可能会对B漫造成一定负载。建议不要频繁进行下载操作，尽管**目前没有**被封号的案例。使用本工具造成的损失请自行承担！

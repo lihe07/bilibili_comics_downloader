@@ -9,4 +9,4 @@ Steps:
 - Install precommit hooks pre-commit install --install-hooks
 - Checkout a branch for your contribution git checkout -b my-new-feature
 - Push your new feature
-- Open an MR at lihe07/bilibili_comics_downloader
+- Open an PR at lihe07/bilibili_comics_downloader
