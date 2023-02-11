@@ -1,8 +1,8 @@
 # bcdown
 
-[Bilibili漫画](manga.bilibili.com/)下载器，written in [Rust](rust-lang.org/)
+[BiliBili漫画](https://manga.bilibili.com/)下载器 使用[Rust](rust-lang.org/)语言实现
 
-这个项目用来接替[之前的python版](https://github.com/lihe07/bilibili-manga-downloader)
+之前的[Python版本](https://github.com/lihe07/bilibili-manga-downloader)现在由[Armo00](https://github.com/Armo00)大佬负责维护了
 
 ## 特性
 
@@ -62,7 +62,7 @@
 
 - `bcdown export [链接或ID] --format [epub或pdf] <--range [开始]-[结束],[开始]-,-[结束]> <-s 单独导出每一话> <--output [输出位置]> <-g [组大小>] `  - 导出一个本地漫画
 
-- `bcdown update` - 自我更新
+ `bcdown update` - 自我更新
 
 ## 安装
 
@@ -76,8 +76,6 @@
 
 ## Kindle使用指南
 
-由于kindle阅读器暂时不支持epub格式的电子书，而pdf格式过于庞大，这里有几种常见解决方案：
-
 1. 使用 `bcdown export XXXX -s -f pdf` 为每一话创建一个pdf
 
    > 切换起来会比较麻烦
@@ -87,11 +85,14 @@
    > azw3往往拥有更好的压缩率，同一个漫画 pdf(1.5G) > epub(300M) > azw3(150M)
 
 3. 使用 `bcdown export XXXX -f plain` 导出为图片文件夹格式，之后使用 `Kindle Comic Converter` 等工具转换成 mobi 或 azw3 格式
+
 ## 贡献
-请看[CONTRIBUTING.md](CONTRIBUTING.md)
+
+请参考[CONTRIBUTING.md](CONTRIBUTING.md)
+
 ## 联系方式
 
-- Email: li@imlihe.com
+- Email: *li@imlihe.com*
 - QQ：*3525904273*
 
 ## 更新记录
@@ -107,14 +108,17 @@
 - 0.2.0 - 范围下载/导出，优化网络，加入分组导出功能，升级依赖项
 - 0.2.1 - 修复bug
 - 0.2.2 - 修复bug
-- 0.3.0 - 为Windows制作了GUI版本，修复下载速度统计，优化了pdf和epub的导出，添加了plain导出选项
+- 0.3.0 - 增强下载稳定性，修复下载速度统计，优化了pdf和epub的导出，添加了plain导出选项，GUI版本开始制作
 
 ## 补充
 
-这个工具只是个爬虫，不能下载没有解锁的漫画，因此解决不了钞能力的问题（
+- 本项目不涉及解锁、交易等功能
 
-如果发现了Bug，欢迎创建Issue
+- 如果发现了Bug，欢迎创建Issue
 
-这个工具的更新会很频繁，建议保持使用最新版
+- 这个工具的更新会很频繁，建议保持使用最新版
 
-短时间内大量的网络请求可能会对B漫造成一定负载。建议不要频繁进行下载操作，尽管**目前没有**被封号的案例。使用本工具造成的损失请自行承担！
+- 短时间内大量的网络请求可能会对B漫造成一定负载。如果网络带宽极大（例如1000Mbps甚至900Mbps），请限制同时下载数量
+
+- 目前没有被封禁的案例，如果您被封禁了，请开一个issue分享下经验
+
