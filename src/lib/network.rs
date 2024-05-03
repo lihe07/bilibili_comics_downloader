@@ -71,7 +71,7 @@ pub async fn get_user_info(config: &Config) -> Option<UserInfo> {
 }
 
 pub async fn get_qr_data(config: &Config) -> (String, String) {
-    let url = "https://passport.bilibili.com/qrcode/getLoginUrl";
+    let url = "https://passport.bilibili.com/x/passport-login/web/qrcode/generate";
     let mut log = paris::Logger::new();
     log.loading("加载二维码");
     let client = config.get_client();
@@ -99,14 +99,14 @@ pub async fn get_qr_data(config: &Config) -> (String, String) {
             .unwrap()
             .as_str()
             .unwrap();
-        let oauth_key = value
+        let qrcode_key = value
             .get("data")
             .unwrap()
-            .get("oauthKey")
+            .get("qrcode_key")
             .unwrap()
             .as_str()
             .unwrap();
-        (url.to_string(), oauth_key.to_string())
+        (url.to_string(), qrcode_key.to_string())
     } else {
         log.done();
         log.error("无法获取二维码数据 请检查网络");
