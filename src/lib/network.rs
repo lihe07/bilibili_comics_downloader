@@ -128,10 +128,8 @@ pub async fn check_qr_status(config: &Config, qrcode_key: String) -> QRStatus {
     let url = "https://passport.bilibili.com/x/passport-login/web/qrcode/poll";
     let mut log = paris::Logger::new();
     let client = config.get_client();
-    let mut params = HashMap::new();
-    params.insert("qrcode_key", qrcode_key.clone());
-    println!("qrcode_key:{}", &qrcode_key);
-    if let Ok(resp) = client.get(url).form(&params).send().await {
+    let url_qrcode = format!("{}?{}{}", url, "qrcode_key=", &qrcode_key);
+    if let Ok(resp) = client.get(url_qrcode).send().await {
         let value: serde_json::Value = resp.json().await.unwrap();
         let data = value.get("data").unwrap();
         let code = data.get("code").unwrap().as_i64().unwrap();
