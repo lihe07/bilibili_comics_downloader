@@ -133,8 +133,8 @@ pub async fn login(method: LoginMethod) {
             }
         }
         LoginMethod::QRCODE => {
-            let (qr_data, oauth) = network::get_qr_data(&config).await;
-            let code = QrCode::new(&qr_data).unwrap();
+            let (qr_url, qrcode_key) = network::get_qr_data(&config).await;
+            let code = QrCode::new(&qr_url).unwrap();
             let image = code
                 .render::<qrcode::render::unicode::Dense1x2>()
                 .dark_color(qrcode::render::unicode::Dense1x2::Dark)
@@ -142,12 +142,12 @@ pub async fn login(method: LoginMethod) {
                 .build();
             println!("{}", image);
             log.success("二维码已生成，请扫描二维码登录");
-            log.info(format!("如果显示错误，请手动访问：{}", qr_data));
+            log.info(format!("如果显示错误，请手动访问：{}", qr_url));
             log.loading("等待扫描...");
             let mut last_status = "NotScan";
             loop {
                 tokio::time::sleep(Duration::from_secs(1)).await;
-                match network::check_qr_status(&config, oauth.clone()).await {
+                match network::check_qr_status(&config, qrcode_key.clone()).await {
                     network::QRStatus::NotScan => {
                         if last_status != "NotScan" {
                             log.done();
