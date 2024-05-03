@@ -71,7 +71,7 @@ pub async fn get_user_info(config: &Config) -> Option<UserInfo> {
 }
 
 pub async fn get_qr_data(config: &Config) -> (String, String) {
-    let url = "https://passport.bilibili.com/qrcode/getLoginUrl";
+    let url = "https://passport.bilibili.com/x/passport-login/web/qrcode/generate";
     let mut log = paris::Logger::new();
     log.loading("加载二维码");
     let client = config.get_client();
@@ -99,14 +99,14 @@ pub async fn get_qr_data(config: &Config) -> (String, String) {
             .unwrap()
             .as_str()
             .unwrap();
-        let oauth_key = value
+        let qrcode_key = value
             .get("data")
             .unwrap()
-            .get("oauthKey")
+            .get("qrcode_key")
             .unwrap()
             .as_str()
             .unwrap();
-        (url.to_string(), oauth_key.to_string())
+        (url.to_string(), qrcode_key.to_string())
     } else {
         log.done();
         log.error("无法获取二维码数据 请检查网络");
@@ -124,31 +124,30 @@ pub enum QRStatus {
     Invalid, // 无效
 }
 
-pub async fn check_qr_status(config: &Config, oauth: String) -> QRStatus {
-    let url = "https://passport.bilibili.com/qrcode/getLoginInfo";
+pub async fn check_qr_status(config: &Config, qrcode_key: String) -> QRStatus {
+    let url = "https://passport.bilibili.com/x/passport-login/web/qrcode/poll";
     let mut log = paris::Logger::new();
     let client = config.get_client();
-    let mut params = HashMap::new();
-    params.insert("oauthKey", oauth.clone());
-    if let Ok(resp) = client.post(url).form(&params).send().await {
+    let url_qrcode = format!("{}?{}{}", url, "qrcode_key=", &qrcode_key);
+    if let Ok(resp) = client.get(url_qrcode).send().await {
         let value: serde_json::Value = resp.json().await.unwrap();
         let data = value.get("data").unwrap();
-        if data.is_number() {
-            let code = data.as_i64().unwrap();
-            if code == -4 {
-                return QRStatus::NotScan;
-            }
-            if code == -5 {
-                return QRStatus::Scanning;
-            }
-            if code == -2 {
-                return QRStatus::Invalid;
-            }
-        } else {
+        let code = data.get("code").unwrap().as_i64().unwrap();
+
+        if code == 86101 {
+            return QRStatus::NotScan;
+        }
+        else if code == 86090 {
+            return QRStatus::Scanning;
+        }
+        else if code == 86038 {
+            return QRStatus::Invalid;
+        }
+        else if code == 0 {
             let data = value.get("data").unwrap();
             // dbg!(resp.cookies());
             let url = data.get("url").unwrap().as_str().unwrap();
-            let sessdata = url.split("&SESSDATA=").collect::<Vec<&str>>()[1]
+            let sessdata = url.split("SESSDATA=").collect::<Vec<&str>>()[1]
                 .split('&')
                 .collect::<Vec<&str>>()[0]
                 .to_string();
