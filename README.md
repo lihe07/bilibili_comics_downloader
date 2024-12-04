@@ -1,3 +1,17 @@
+# 暂停维护
+
+由于近期B漫多次更新，加入了新的加密和风控，工具已经无法使用。
+
+目前的所有三方下载器均已失效，继续更新风险较大。
+
+相关Issues:
+
+- [lanyeeee/bilibili-manga-downloader #68](https://github.com/lanyeeee/bilibili-manga-downloader/issues/68)
+- [lanyeeee/bilibili-manga-download-script #4](https://github.com/lanyeeee/bilibili-manga-download-script/issues/4)
+- [Zeal-L/BiliBili-Manga-Downloader #170](https://github.com/Zeal-L/BiliBili-Manga-Downloader/issues/170)
+
+更多细节也欢迎联系我 (QQ: 3525904273)
+
 # bcdown
 
 [Bilibili漫画](manga.bilibili.com/)下载器，written in [Rust](rust-lang.org/)
@@ -21,14 +35,14 @@
 4. 更灵活的导出
 
    支持分话导出和合并导出，会自动添加Kindle等阅读器可识别的书签
-   
+
    目前支持**epub**，**pdf**和**zip**三种格式
 
 ## 使用方法
 
 工具共有如下几个命令：
 
-- `bcdown info ` - 显示配置信息，缓存大小，登录状态
+- `bcdown info` - 显示配置信息，缓存大小，登录状态
 
   使用示例：
 
@@ -96,11 +110,11 @@
 
   使用示例：
 
-  - `bcdown fetch mc29911 --range 1-20,40-50,60- ` 下载 *mc29911* 第1话到第20话，第40话到第50话 和 第60话之后的所有到本地
+  - `bcdown fetch mc29911 --range 1-20,40-50,60-` 下载 *mc29911* 第1话到第20话，第40话到第50话 和 第60话之后的所有到本地
 
     ``
 
-- `bcdown export [链接或ID] --format [epub或pdf] <--range [开始]-[结束],[开始]-,-[结束]> <-s 单独导出每一话> <--output [输出位置]> <-g [组大小>] `  - 导出一个本地漫画
+- `bcdown export [链接或ID] --format [epub或pdf] <--range [开始]-[结束],[开始]-,-[结束]> <-s 单独导出每一话> <--output [输出位置]> <-g [组大小>]`  - 导出一个本地漫画
 
 ## 构建，编译，安装
 
@@ -118,15 +132,18 @@
 
 1. 使用 `bcdown export XXXX -s -f pdf` 分话导出较小的pdf文件（编码较慢）
 
-   > ​	在存储空间较小的设备上需要较多次的传输
+   > ​ 在存储空间较小的设备上需要较多次的传输
 
 2. 使用 `bcdown export XXXX -f epub` 导出一个大的epub文件（比pdf快），之后使用 `ebook-convert`, `NeatConverter` 等工具转换成 azw3 格式（这里推荐Neat Converter，对大文件支持比较好）
 
-   > ​	实测azw3拥有更好的压缩率，pdf(1.5G) > epub(300M) > azw3(150M)
+   > ​ 实测azw3拥有更好的压缩率，pdf(1.5G) > epub(300M) > azw3(150M)
    >
-   > ​	由于不同的导出工具的区别，一些小功能可能会失效（如封面图片，标题等）图片和目录的显示已经经过测试，不会出现较大的问题
+   > ​ 由于不同的导出工具的区别，一些小功能可能会失效（如封面图片，标题等）图片和目录的显示已经经过测试，不会出现较大的问题
+   >
 ## 提交PR
+
 看[CONTRIBUTING.md](CONTRIBUTING.md)
+
 ## 联系方式
 
 我的QQ：*3525904273*
